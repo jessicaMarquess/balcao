@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Badge } from '@renderer/components/ui/badge'
 import { formatCurrency, hojeISO } from '@renderer/lib/utils'
@@ -37,6 +37,15 @@ export default function PDV(): React.JSX.Element {
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [modalVendaAberto, setModalVendaAberto] = useState(false)
   const [vendaSelecionada, setVendaSelecionada] = useState<Venda | null>(null)
+  const [expandidos, setExpandidos] = useState<Set<number>>(new Set())
+
+  function toggleExpandido(id: number): void {
+    setExpandidos((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   const carregar = useCallback(async () => {
     const [lista, saldo] = await Promise.all([
@@ -174,18 +183,41 @@ export default function PDV(): React.JSX.Element {
             {vendasFiltradas.map((venda) => (
               <div
                 key={venda.id}
-                onClick={() => setVendaSelecionada(venda)}
-                className="flex items-center gap-4 rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer hover:border-violet-300 hover:bg-violet-50/60 hover:shadow-sm transition-all duration-150"
+                onClick={() => toggleExpandido(venda.id)}
+                className="flex items-center gap-4 rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer hover:border-violet-200 hover:bg-violet-50/40 transition-all duration-150"
               >
-                <span className="text-xs text-slate-300 w-10 font-mono">#{venda.id}</span>
                 <span className="text-sm text-slate-400 w-14">
                   {new Date(venda.created_at).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
                 </span>
-                <div className="flex-1 text-sm text-slate-600">
-                  {venda.itens?.map((i) => i.nome_produto).join(', ')}
+                <div className="flex-1 text-sm text-slate-600 min-w-0">
+                  {(() => {
+                    const itens = venda.itens ?? []
+                    if (itens.length <= 1) return <span>{itens[0]?.nome_produto ?? ''}</span>
+                    const expandido = expandidos.has(venda.id)
+                    const resto = itens.length - 1
+                    return (
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{itens[0].nome_produto}</span>
+                          {!expandido && (
+                            <span className="shrink-0 text-xs text-slate-400">
+                              +{resto} {resto === 1 ? 'item' : 'itens'}
+                            </span>
+                          )}
+                        </div>
+                        {expandido && (
+                          <div className="mt-1.5 flex flex-col gap-0.5 text-xs text-slate-400 border-l-2 border-violet-100 pl-2">
+                            {itens.slice(1).map((item, idx) => (
+                              <span key={idx}>{item.nome_produto}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
                 <Badge variant={BADGE_PAGAMENTO[venda.forma_pagamento]}>
                   {LABEL_PAGAMENTO[venda.forma_pagamento]}
@@ -193,6 +225,14 @@ export default function PDV(): React.JSX.Element {
                 <span className="font-bold text-slate-800 w-24 text-right">
                   {formatCurrency(venda.total)}
                 </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => { e.stopPropagation(); setVendaSelecionada(venda) }}
+                  className="shrink-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>

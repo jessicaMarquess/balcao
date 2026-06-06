@@ -102,17 +102,17 @@ export default function Estatisticas(): React.JSX.Element {
       ) : (
         <div className="grid grid-cols-2 gap-4 p-6">
           {/* ── Gráfico dias da semana ── */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="col-span-2 rounded-2xl border border-slate-200 bg-white p-5">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-4">
               Vendas por dia da semana
             </p>
-            <div className="flex items-end gap-2 h-36">
+            <div className="flex items-end gap-3 h-48">
               {diasSemana.map(({ dia, total }) => {
                 const altura = (total / maxDia) * 100
                 const isTop = melhoresDias[0]?.dia === dia
                 return (
                   <div key={dia} className="flex-1 flex flex-col items-center gap-1 group">
-                    <div className="w-full flex flex-col justify-end" style={{ height: '120px' }}>
+                    <div className="w-full flex flex-col justify-end" style={{ height: '180px' }}>
                       {total > 0 ? (
                         <div
                           className={`relative w-full rounded-t-lg transition-all duration-500 ${
@@ -120,9 +120,9 @@ export default function Estatisticas(): React.JSX.Element {
                               ? 'bg-linear-to-t from-violet-600 to-purple-500'
                               : 'bg-violet-200 group-hover:bg-violet-400'
                           }`}
-                          style={{ height: `${Math.max(altura, 5)}%` }}
+                          style={{ height: `${Math.max(altura, 3)}%` }}
                         >
-                          <div className="absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:flex bg-slate-800 text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap z-10 flex-col items-center">
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex bg-slate-800 text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap z-10 flex-col items-center">
                             <span className="font-bold">{formatCurrency(total)}</span>
                           </div>
                         </div>

@@ -4,14 +4,24 @@ import { join } from 'path'
 
 let db: Database.Database
 
+export function getDbPath(): string {
+  return join(app.getPath('userData'), 'balcao.db')
+}
+
 export function getDb(): Database.Database {
   if (!db) {
-    const dbPath = join(app.getPath('userData'), 'balcao.db')
-    db = new Database(dbPath)
+    db = new Database(getDbPath())
     configurar(db)
     migrar(db)
   }
   return db
+}
+
+export function closeDb(): void {
+  if (db) {
+    db.close()
+    db = undefined as unknown as Database.Database
+  }
 }
 
 function configurar(db: Database.Database): void {

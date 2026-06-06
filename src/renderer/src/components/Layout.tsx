@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { CalendarDays, Package, History, BarChart2, PieChart, ShoppingBasket } from 'lucide-react'
+import { CalendarDays, Package, History, BarChart2, PieChart, ShoppingBasket, Download, Upload, Loader2 } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
+import { Logo } from './Logo'
 
 const navItems = [
   { to: '/dia', label: 'PDV', icon: CalendarDays, end: true },
@@ -11,16 +13,52 @@ const navItems = [
   { to: '/lista-compras', label: 'Lista de compras', icon: ShoppingBasket, end: false }
 ]
 
+type BackupEstado = 'idle' | 'loading' | 'erro'
+
 export default function Layout(): React.JSX.Element {
+  const [exportando, setExportando] = useState<BackupEstado>('idle')
+  const [importando, setImportando] = useState<BackupEstado>('idle')
+
+  async function handleExportar(): Promise<void> {
+    setExportando('loading')
+    try {
+      const res = await window.api.backup.exportar()
+      if ('cancelado' in res || res.sucesso) {
+        setExportando('idle')
+      } else {
+        setExportando('erro')
+        setTimeout(() => setExportando('idle'), 3000)
+      }
+    } catch {
+      setExportando('erro')
+      setTimeout(() => setExportando('idle'), 3000)
+    }
+  }
+
+  async function handleImportar(): Promise<void> {
+    setImportando('loading')
+    try {
+      const res = await window.api.backup.importar()
+      if ('cancelado' in res) { setImportando('idle'); return }
+      if (res.sucesso) {
+        setImportando('idle')
+        window.location.reload()
+      } else {
+        setImportando('erro')
+        setTimeout(() => setImportando('idle'), 3000)
+      }
+    } catch {
+      setImportando('erro')
+      setTimeout(() => setImportando('idle'), 3000)
+    }
+  }
+
   return (
     <div className="flex h-screen bg-violet-50/60">
       <aside className="flex w-52 flex-col bg-[#120d24] text-white shrink-0">
         {/* Brand */}
-        <div className="flex h-16 flex-col justify-center px-5 border-b border-white/10">
-          <span className="text-sm font-bold tracking-tight bg-linear-to-r from-violet-300 to-purple-200 bg-clip-text text-transparent">
-            J&C Variedades
-          </span>
-          <span className="text-xs text-white/40 mt-0.5">Balcão</span>
+        <div className="flex h-16 items-center px-4 border-b border-white/10">
+          <Logo />
         </div>
 
         {/* Nav */}
@@ -46,8 +84,42 @@ export default function Layout(): React.JSX.Element {
         </nav>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-white/10">
-          <p className="text-xs text-white/25 text-center">v1.0</p>
+        <div className="px-3 py-4 border-t border-white/10 flex flex-col gap-2">
+          <button
+            onClick={handleExportar}
+            disabled={exportando === 'loading' || importando === 'loading'}
+            title="Fazer backup"
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-150 w-full',
+              exportando === 'erro'
+                ? 'bg-red-900/40 text-red-300'
+                : 'text-white/50 hover:bg-white/8 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed'
+            )}
+          >
+            {exportando === 'loading'
+              ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              : <Download className="h-3.5 w-3.5 shrink-0" />}
+            {exportando === 'erro' ? 'Erro ao exportar' : 'Backup'}
+          </button>
+
+          <button
+            onClick={handleImportar}
+            disabled={exportando === 'loading' || importando === 'loading'}
+            title="Restaurar backup"
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-150 w-full',
+              importando === 'erro'
+                ? 'bg-red-900/40 text-red-300'
+                : 'text-white/50 hover:bg-white/8 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed'
+            )}
+          >
+            {importando === 'loading'
+              ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              : <Upload className="h-3.5 w-3.5 shrink-0" />}
+            {importando === 'erro' ? 'Erro ao restaurar' : 'Restaurar'}
+          </button>
+
+          <p className="text-xs text-white/25 text-center mt-1">v1.0</p>
         </div>
       </aside>
 

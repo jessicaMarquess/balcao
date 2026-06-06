@@ -48,6 +48,10 @@ const api = {
   exportar: {
     csv: (dataInicio: string, dataFim: string) =>
       ipcRenderer.invoke('exportar:csv', dataInicio, dataFim)
+  },
+  backup: {
+    exportar: () => ipcRenderer.invoke('backup:exportar'),
+    importar: () => ipcRenderer.invoke('backup:importar')
   }
 }
 

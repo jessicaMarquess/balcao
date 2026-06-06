@@ -1,3 +1,4 @@
+import logoSrc from '@renderer/assets/logo.png'
 import { Button } from '@renderer/components/ui/button'
 import { InputMoeda } from '@renderer/components/ui/input-moeda'
 import { formatCurrency, hojeISO } from '@renderer/lib/utils'
@@ -55,9 +56,11 @@ export default function Inicio(): React.JSX.Element {
       <div className="relative flex flex-col items-center gap-8 text-center">
         {/* Logo */}
         <div className="flex flex-col items-center gap-1">
-          <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-violet-500 to-purple-700 shadow-lg shadow-violet-900/50 flex items-center justify-center mb-2">
-            <span className="text-white font-bold text-lg">JC</span>
-          </div>
+          <img
+            src={logoSrc}
+            alt="J&C Variedades"
+            className="w-28 h-28 object-contain rounded-2xl mb-1 drop-shadow-[0_0_24px_rgba(139,92,246,0.4)]"
+          />
           <p className="text-2xl font-bold text-white tracking-tight">
             {saudacao()}, Cleide e Jander!
           </p>

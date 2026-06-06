@@ -1,8 +1,9 @@
 import { ipcMain, dialog, app, BrowserWindow } from 'electron'
 import { join } from 'path'
-import { writeFileSync } from 'fs'
+import { copyFileSync, writeFileSync } from 'fs'
 import { listarProdutos, criarProduto, atualizarProduto, deletarProduto } from '../db/produtos'
 import { registrarVenda, listarVendasPorData, resumoDia, listarVendasPorPeriodo, atualizarVenda, excluirVenda } from '../db/vendas'
+import { closeDb, getDb, getDbPath } from '../db'
 import { getSaldoDia, setSaldoDia, existeSaldoDia } from '../db/saldo'
 import { listarItens, adicionarItem, atualizarQuantidade, toggleItem, deletarItem, limparConcluidos, limparTodos } from '../db/lista-compras'
 import { getRelatorioDia, getRelatorioComparativo, getEstatisticas } from '../db/relatorio'
@@ -125,6 +126,41 @@ export function registrarHandlers(): void {
       return { sucesso: false, erro: err instanceof Error ? err.message : String(err) }
     } finally {
       win.destroy()
+    }
+  })
+
+  // Backup
+  ipcMain.handle('backup:exportar', async () => {
+    const dataFormatada = new Date().toISOString().slice(0, 10)
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Salvar backup',
+      defaultPath: join(app.getPath('documents'), `balcao-backup-${dataFormatada}.db`),
+      filters: [{ name: 'Backup do Balcão', extensions: ['db'] }]
+    })
+    if (canceled || !filePath) return { cancelado: true }
+    try {
+      copyFileSync(getDbPath(), filePath)
+      return { sucesso: true }
+    } catch (err) {
+      return { sucesso: false, erro: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('backup:importar', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Restaurar backup',
+      filters: [{ name: 'Backup do Balcão', extensions: ['db'] }],
+      properties: ['openFile']
+    })
+    if (canceled || filePaths.length === 0) return { cancelado: true }
+    try {
+      closeDb()
+      copyFileSync(filePaths[0], getDbPath())
+      getDb()
+      return { sucesso: true }
+    } catch (err) {
+      getDb()
+      return { sucesso: false, erro: err instanceof Error ? err.message : String(err) }
     }
   })
 

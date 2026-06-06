@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { getDb } from './db'
+import { rodarSeedDesenvolvimento } from './db/seed'
 import { registrarHandlers } from './ipc'
 
 function createWindow(): void {
@@ -42,6 +43,7 @@ app.whenReady().then(() => {
   })
 
   getDb()
+  rodarSeedDesenvolvimento()
   registrarHandlers()
   createWindow()
 

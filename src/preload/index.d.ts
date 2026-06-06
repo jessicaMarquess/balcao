@@ -53,6 +53,10 @@ declare global {
       exportar: {
         csv: (dataInicio: string, dataFim: string) => Promise<boolean>
       }
+      backup: {
+        exportar: () => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
+        importar: () => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
+      }
     }
   }
 }
