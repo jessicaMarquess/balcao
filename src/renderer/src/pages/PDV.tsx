@@ -7,18 +7,20 @@ import VendaModal from '@renderer/components/VendaModal'
 import EditarVendaModal from '@renderer/components/EditarVendaModal'
 import type { Venda } from '@renderer/types'
 
-type Filtro = 'todos' | 'dinheiro' | 'pix' | 'cartao'
+type Filtro = 'todos' | 'dinheiro' | 'pix' | 'cartao' | 'debito'
 
 const LABEL_PAGAMENTO: Record<string, string> = {
   pix: 'PIX',
-  cartao: 'Cartão',
-  dinheiro: 'Dinheiro'
+  cartao: 'Crédito',
+  dinheiro: 'Dinheiro',
+  debito: 'Débito'
 }
 
-const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary'> = {
+const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary' | 'warning'> = {
   pix: 'default',
   cartao: 'secondary',
-  dinheiro: 'success'
+  dinheiro: 'success',
+  debito: 'warning'
 }
 
 function formatarDataPT(iso: string): string {
@@ -34,6 +36,7 @@ export default function PDV(): React.JSX.Element {
   const [totalPix, setTotalPix] = useState(0)
   const [totalCartao, setTotalCartao] = useState(0)
   const [totalDinheiro, setTotalDinheiro] = useState(0)
+  const [totalDebito, setTotalDebito] = useState(0)
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [modalVendaAberto, setModalVendaAberto] = useState(false)
   const [vendaSelecionada, setVendaSelecionada] = useState<Venda | null>(null)
@@ -57,6 +60,7 @@ export default function PDV(): React.JSX.Element {
     setTotalPix(lista.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0))
     setTotalCartao(lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0))
     setTotalDinheiro(lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0))
+    setTotalDebito(lista.filter((v) => v.forma_pagamento === 'debito').reduce((s, v) => s + v.total, 0))
   }, [hoje])
 
   useEffect(() => { carregar() }, [carregar])
@@ -65,7 +69,7 @@ export default function PDV(): React.JSX.Element {
     setFiltro((prev) => (prev === f ? 'todos' : f))
   }
 
-  const totalGeral = totalDinheiro + totalPix + totalCartao
+  const totalGeral = totalDinheiro + totalPix + totalCartao + totalDebito
   const vendasFiltradas = filtro === 'todos' ? vendas : vendas.filter((v) => v.forma_pagamento === filtro)
 
   const cards: {
@@ -116,6 +120,17 @@ export default function PDV(): React.JSX.Element {
         ativo: 'ring-purple-400',
         label: 'text-purple-600',
         valor: 'text-purple-800'
+      }
+    },
+    {
+      id: 'debito',
+      label: 'Débito',
+      valor: totalDebito,
+      estilo: {
+        base: 'border-blue-200 bg-blue-50',
+        ativo: 'ring-blue-400',
+        label: 'text-blue-600',
+        valor: 'text-blue-800'
       }
     }
   ]

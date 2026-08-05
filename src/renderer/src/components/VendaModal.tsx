@@ -17,7 +17,8 @@ interface Props {
 const FORMAS = [
   { value: 'dinheiro', label: 'Dinheiro' },
   { value: 'pix', label: 'PIX' },
-  { value: 'cartao', label: 'Cartão' }
+  { value: 'cartao', label: 'Crédito' },
+  { value: 'debito', label: 'Débito' }
 ] as const
 
 export default function VendaModal({
@@ -29,7 +30,7 @@ export default function VendaModal({
   const [busca, setBusca] = useState('')
   const [itens, setItens] = useState<ItemCarrinho[]>([])
   const [desconto, setDesconto] = useState(0)
-  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro'>('dinheiro')
+  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro' | 'debito'>('dinheiro')
   const [salvando, setSalvando] = useState(false)
 
   // Cadastro rápido de produto

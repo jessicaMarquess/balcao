@@ -40,9 +40,8 @@ declare global {
         listar: () => Promise<ItemListaCompras[]>
         adicionar: (nome: string, quantidade: number) => Promise<ItemListaCompras>
         atualizarQuantidade: (id: number, quantidade: number) => Promise<boolean>
-        toggle: (id: number) => Promise<boolean>
+        marcarComprado: (id: number, nome: string, quantidade: number) => Promise<boolean>
         deletar: (id: number) => Promise<boolean>
-        limparConcluidos: () => Promise<boolean>
         limparTodos: () => Promise<boolean>
         exportarPdf: (itens: { nome: string; quantidade: number }[]) => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
       }

@@ -30,16 +30,16 @@ export function atualizarQuantidade(id: number, quantidade: number): void {
     .run(Math.max(1, quantidade), id)
 }
 
-export function toggleItem(id: number): void {
-  getDb().prepare('UPDATE lista_compras SET concluido = 1 - concluido WHERE id = ?').run(id)
+export function marcarComprado(id: number, nome: string, quantidade: number): void {
+  const db = getDb()
+  db.prepare(
+    'UPDATE produtos SET estoque = estoque + ? WHERE LOWER(nome) = LOWER(?)'
+  ).run(quantidade, nome)
+  db.prepare('DELETE FROM lista_compras WHERE id = ?').run(id)
 }
 
 export function deletarItem(id: number): void {
   getDb().prepare('DELETE FROM lista_compras WHERE id = ?').run(id)
-}
-
-export function limparConcluidos(): void {
-  getDb().prepare('DELETE FROM lista_compras WHERE concluido = 1').run()
 }
 
 export function limparTodos(): void {

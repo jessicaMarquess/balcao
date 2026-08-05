@@ -18,7 +18,8 @@ interface Props {
 const FORMAS = [
   { value: 'dinheiro', label: 'Dinheiro' },
   { value: 'pix', label: 'PIX' },
-  { value: 'cartao', label: 'Cartão' }
+  { value: 'cartao', label: 'Crédito' },
+  { value: 'debito', label: 'Débito' }
 ] as const
 
 export default function EditarVendaModal({
@@ -40,7 +41,7 @@ export default function EditarVendaModal({
     }))
   )
   const [desconto, setDesconto] = useState<number>(() => venda?.desconto ?? 0)
-  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro'>(
+  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro' | 'debito'>(
     () => venda?.forma_pagamento ?? 'dinheiro'
   )
   const [salvando, setSalvando] = useState(false)

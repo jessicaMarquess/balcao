@@ -50,6 +50,7 @@ export function resumoDia(data: string): ResumoDia {
         COALESCE(SUM(CASE WHEN forma_pagamento = 'pix' THEN total ELSE 0 END), 0) as total_pix,
         COALESCE(SUM(CASE WHEN forma_pagamento = 'cartao' THEN total ELSE 0 END), 0) as total_cartao,
         COALESCE(SUM(CASE WHEN forma_pagamento = 'dinheiro' THEN total ELSE 0 END), 0) as total_dinheiro,
+        COALESCE(SUM(CASE WHEN forma_pagamento = 'debito' THEN total ELSE 0 END), 0) as total_debito,
         COUNT(*) as quantidade_vendas
       FROM vendas WHERE data = ?
     `)

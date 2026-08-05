@@ -5,7 +5,7 @@ import { listarProdutos, criarProduto, atualizarProduto, deletarProduto } from '
 import { registrarVenda, listarVendasPorData, resumoDia, listarVendasPorPeriodo, atualizarVenda, excluirVenda } from '../db/vendas'
 import { closeDb, getDb, getDbPath } from '../db'
 import { getSaldoDia, setSaldoDia, existeSaldoDia } from '../db/saldo'
-import { listarItens, adicionarItem, atualizarQuantidade, toggleItem, deletarItem, limparConcluidos, limparTodos } from '../db/lista-compras'
+import { listarItens, adicionarItem, atualizarQuantidade, marcarComprado, deletarItem, limparTodos } from '../db/lista-compras'
 import { getRelatorioDia, getRelatorioComparativo, getEstatisticas } from '../db/relatorio'
 import type { NovaVenda, NovoProduto } from '../../renderer/src/types'
 
@@ -62,16 +62,12 @@ export function registrarHandlers(): void {
     atualizarQuantidade(id, quantidade)
     return true
   })
-  ipcMain.handle('lista-compras:toggle', (_e, id: number) => {
-    toggleItem(id)
+  ipcMain.handle('lista-compras:marcar-comprado', (_e, id: number, nome: string, quantidade: number) => {
+    marcarComprado(id, nome, quantidade)
     return true
   })
   ipcMain.handle('lista-compras:deletar', (_e, id: number) => {
     deletarItem(id)
-    return true
-  })
-  ipcMain.handle('lista-compras:limpar-concluidos', () => {
-    limparConcluidos()
     return true
   })
   ipcMain.handle('lista-compras:limpar-todos', () => {

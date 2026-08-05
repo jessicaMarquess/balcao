@@ -8,14 +8,16 @@ import type { Venda } from '@renderer/types'
 
 const LABEL_PAGAMENTO: Record<string, string> = {
   pix: 'PIX',
-  cartao: 'Cartão',
-  dinheiro: 'Dinheiro'
+  cartao: 'Crédito',
+  dinheiro: 'Dinheiro',
+  debito: 'Débito'
 }
 
-const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary'> = {
+const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary' | 'warning'> = {
   pix: 'default',
   cartao: 'secondary',
-  dinheiro: 'success'
+  dinheiro: 'success',
+  debito: 'warning'
 }
 
 function diasAtras(n: number): string {
@@ -31,6 +33,7 @@ interface GrupoDia {
   totalPix: number
   totalCartao: number
   totalDinheiro: number
+  totalDebito: number
 }
 
 function agruparPorDia(vendas: Venda[]): GrupoDia[] {
@@ -48,7 +51,8 @@ function agruparPorDia(vendas: Venda[]): GrupoDia[] {
       total: vendas.reduce((s, v) => s + v.total, 0),
       totalPix: vendas.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0),
       totalCartao: vendas.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0),
-      totalDinheiro: vendas.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0)
+      totalDinheiro: vendas.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0),
+      totalDebito: vendas.filter((v) => v.forma_pagamento === 'debito').reduce((s, v) => s + v.total, 0)
     }))
 }
 
@@ -181,7 +185,10 @@ export default function Historico(): React.JSX.Element {
                       <span className="text-blue-600">PIX {formatCurrency(grupo.totalPix)}</span>
                     )}
                     {grupo.totalCartao > 0 && (
-                      <span className="text-purple-600">Cart. {formatCurrency(grupo.totalCartao)}</span>
+                      <span className="text-purple-600">Créd. {formatCurrency(grupo.totalCartao)}</span>
+                    )}
+                    {grupo.totalDebito > 0 && (
+                      <span className="text-blue-600">Déb. {formatCurrency(grupo.totalDebito)}</span>
                     )}
                     <span className="font-bold text-slate-800 w-28 text-right">
                       {formatCurrency(grupo.total)}

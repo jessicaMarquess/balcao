@@ -20,7 +20,7 @@ export interface Venda {
   data: string
   total: number
   desconto: number
-  forma_pagamento: 'pix' | 'cartao' | 'dinheiro'
+  forma_pagamento: 'pix' | 'cartao' | 'dinheiro' | 'debito'
   created_at: string
   itens?: ItemVenda[]
 }
@@ -37,12 +37,13 @@ export interface ResumoDia {
   total_pix: number
   total_cartao: number
   total_dinheiro: number
+  total_debito: number
   quantidade_vendas: number
 }
 
 export interface NovaVenda {
   itens: ItemCarrinho[]
-  forma_pagamento: 'pix' | 'cartao' | 'dinheiro'
+  forma_pagamento: 'pix' | 'cartao' | 'dinheiro' | 'debito'
   desconto: number
   data: string
 }
@@ -66,6 +67,7 @@ export interface RelatorioDia {
   totalPix: number
   totalCartao: number
   totalDinheiro: number
+  totalDebito: number
   saldoInicial: number
   quantidadeVendas: number
   maisVendidos: { nome_produto: string; total_quantidade: number }[]
@@ -79,6 +81,7 @@ export interface DiaSummary {
   total_pix: number
   total_cartao: number
   total_dinheiro: number
+  total_debito: number
 }
 
 export interface EstatDiaSemana {

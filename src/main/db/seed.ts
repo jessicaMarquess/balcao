@@ -24,12 +24,15 @@ const PRODUTOS_SEED = [
   { nome: 'Cabo HDMI 2m', preco: 28.0, estoque: 20 },
 ]
 
-const FORMAS_PAGAMENTO = ['pix', 'cartao', 'dinheiro'] as const
+const FORMAS_PAGAMENTO = ['pix', 'cartao', 'dinheiro', 'debito'] as const
 
 function dataString(diasAtras: number): string {
   const d = new Date()
   d.setDate(d.getDate() - diasAtras)
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function aleatorio(min: number, max: number): number {
@@ -76,8 +79,8 @@ export function rodarSeedDesenvolvimento(): void {
       ids.push(Number(r.lastInsertRowid))
     }
 
-    // Gera vendas para os últimos 30 dias
-    for (let dia = 30; dia >= 0; dia--) {
+    // Gera vendas para os últimos 30 dias (excluindo hoje)
+    for (let dia = 30; dia >= 1; dia--) {
       const data = dataString(dia)
       const qtdVendas = aleatorio(3, 12)
 

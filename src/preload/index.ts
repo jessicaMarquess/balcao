@@ -38,9 +38,9 @@ const api = {
       ipcRenderer.invoke('lista-compras:adicionar', nome, quantidade),
     atualizarQuantidade: (id: number, quantidade: number) =>
       ipcRenderer.invoke('lista-compras:atualizar-quantidade', id, quantidade),
-    toggle: (id: number) => ipcRenderer.invoke('lista-compras:toggle', id),
+    marcarComprado: (id: number, nome: string, quantidade: number) =>
+      ipcRenderer.invoke('lista-compras:marcar-comprado', id, nome, quantidade),
     deletar: (id: number) => ipcRenderer.invoke('lista-compras:deletar', id),
-    limparConcluidos: () => ipcRenderer.invoke('lista-compras:limpar-concluidos'),
     limparTodos: () => ipcRenderer.invoke('lista-compras:limpar-todos'),
     exportarPdf: (itens: { nome: string; quantidade: number }[]) =>
       ipcRenderer.invoke('lista-compras:exportar-pdf', itens)

@@ -14,6 +14,7 @@ export default function ListaCompras(): React.JSX.Element {
   const [adicionando, setAdicionando] = useState(false)
   const [fechando, setFechando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [marcando, setMarcando] = useState<number | null>(null)
 
   useEffect(() => {
     carregar()
@@ -47,9 +48,19 @@ export default function ListaCompras(): React.JSX.Element {
     await window.api.listaCompras.atualizarQuantidade(item.id, nova)
   }
 
-  async function toggle(id: number): Promise<void> {
-    await window.api.listaCompras.toggle(id)
-    await carregar()
+  async function recarregarSugestoes(): Promise<void> {
+    const lista = await window.api.produtos.listar()
+    setSugestoes(lista.filter((p) => p.ativo && p.estoque <= ESTOQUE_BAIXO))
+  }
+
+  async function marcarComprado(item: ItemListaCompras): Promise<void> {
+    setMarcando(item.id)
+    try {
+      await window.api.listaCompras.marcarComprado(item.id, item.nome, item.quantidade)
+      await Promise.all([carregar(), recarregarSugestoes()])
+    } finally {
+      setMarcando(null)
+    }
   }
 
   async function deletar(id: number): Promise<void> {
@@ -57,24 +68,14 @@ export default function ListaCompras(): React.JSX.Element {
     await carregar()
   }
 
-  async function limparConcluidos(): Promise<void> {
-    await window.api.listaCompras.limparConcluidos()
-    await carregar()
-  }
-
   async function fecharLista(): Promise<void> {
     setFechando(true)
     setErro(null)
     try {
-      const itensPdf = itens
-        .filter((i) => !i.concluido)
-        .map((i) => ({ nome: i.nome, quantidade: i.quantidade }))
+      const itensPdf = itens.map((i) => ({ nome: i.nome, quantidade: i.quantidade }))
       const resultado = await window.api.listaCompras.exportarPdf(itensPdf)
       if ('cancelado' in resultado) return
-      if (resultado.sucesso) {
-        await window.api.listaCompras.limparTodos()
-        await carregar()
-      } else {
+      if (!resultado.sucesso) {
         setErro(resultado.erro)
       }
     } finally {
@@ -82,8 +83,6 @@ export default function ListaCompras(): React.JSX.Element {
     }
   }
 
-  const pendentes = itens.filter((i) => !i.concluido)
-  const concluidos = itens.filter((i) => i.concluido)
   const nomesNaLista = new Set(itens.map((i) => i.nome.toLowerCase()))
   const sugestoesPendentes = sugestoes.filter((p) => !nomesNaLista.has(p.nome.toLowerCase()))
 
@@ -93,11 +92,6 @@ export default function ListaCompras(): React.JSX.Element {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-800">Lista de Compras</h1>
         <div className="flex gap-2">
-          {concluidos.length > 0 && (
-            <Button variant="outline" size="sm" onClick={limparConcluidos}>
-              Limpar concluídos
-            </Button>
-          )}
           <Button
             size="sm"
             onClick={fecharLista}
@@ -195,87 +189,62 @@ export default function ListaCompras(): React.JSX.Element {
           <p className="text-sm mt-1">Adicione os produtos que precisam ser comprados</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-5">
-          {/* Pendentes */}
-          {pendentes.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
-                A comprar ({pendentes.length})
-              </p>
-              <div className="flex flex-col gap-1">
-                {pendentes.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+        <div>
+          <p className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+            A comprar ({itens.length})
+          </p>
+          <div className="flex flex-col gap-1">
+            {itens.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+              >
+                <input
+                  type="checkbox"
+                  checked={false}
+                  onChange={() => marcarComprado(item)}
+                  disabled={marcando === item.id}
+                  className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-violet-600 disabled:opacity-40"
+                />
+                <span className="flex-1 text-sm text-slate-700">{item.nome}</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => alterarQuantidade(item, -1)}
+                    disabled={item.quantidade <= 1}
+                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50 disabled:opacity-30"
                   >
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => toggle(item.id)}
-                      className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-violet-600"
-                    />
-                    <span className="flex-1 text-sm text-slate-700">{item.nome}</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => alterarQuantidade(item, -1)}
-                        disabled={item.quantidade <= 1}
-                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50 disabled:opacity-30"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-semibold text-slate-700">
-                        {item.quantidade}
-                      </span>
-                      <button
-                        onClick={() => alterarQuantidade(item, 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => deletar(item.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Concluídos */}
-          {concluidos.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide">
-                Comprado ({concluidos.length})
-              </p>
-              <div className="flex flex-col gap-1">
-                {concluidos.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 opacity-60"
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantidade}
+                    onChange={(e) => {
+                      const v = Math.max(1, parseInt(e.target.value) || 1)
+                      setItens((prev) => prev.map((i) => i.id === item.id ? { ...i, quantidade: v } : i))
+                    }}
+                    onBlur={(e) => {
+                      const v = Math.max(1, parseInt(e.target.value) || 1)
+                      window.api.listaCompras.atualizarQuantidade(item.id, v)
+                    }}
+                    className="w-10 text-center text-sm font-semibold text-slate-700 border border-violet-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-violet-400 py-0.5"
+                  />
+                  <button
+                    onClick={() => alterarQuantidade(item, 1)}
+                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50"
                   >
-                    <input
-                      type="checkbox"
-                      checked={true}
-                      onChange={() => toggle(item.id)}
-                      className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-violet-600"
-                    />
-                    <span className="flex-1 text-sm text-slate-500 line-through">{item.nome}</span>
-                    <span className="text-xs text-slate-400 font-medium">{item.quantidade}×</span>
-                    <button
-                      onClick={() => deletar(item.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => deletar(item.id)}
+                  className="text-slate-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>

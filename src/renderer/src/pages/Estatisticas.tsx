@@ -10,13 +10,15 @@ const DIAS_FULL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 
 const FORMAS_LABEL: Record<string, string> = {
   dinheiro: 'Dinheiro',
   pix: 'PIX',
-  cartao: 'Cartão'
+  cartao: 'Crédito',
+  debito: 'Débito'
 }
 
 const FORMAS_COR: Record<string, { bar: string; bg: string; text: string; border: string }> = {
   dinheiro: { bar: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
   pix: { bar: 'bg-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
-  cartao: { bar: 'bg-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+  cartao: { bar: 'bg-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  debito: { bar: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
 }
 
 const PERIODO_LABELS: Record<Periodo, string> = {
@@ -241,7 +243,7 @@ export default function Estatisticas(): React.JSX.Element {
             ) : (
               <div className="flex flex-col gap-4">
                 {/* Cards de forma */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {dados.formaPagamento.map((f) => {
                     const cor = FORMAS_COR[f.forma] ?? FORMAS_COR['dinheiro']
                     const pct = totalGeral > 0 ? Math.round((f.total / totalGeral) * 100) : 0

@@ -36,8 +36,9 @@ export default function Fechamento(): React.JSX.Element {
   const itensResumo = resumo
     ? [
         { label: 'Dinheiro', value: resumo.total_dinheiro, cor: 'text-green-700', bg: 'bg-green-50 border-green-200' },
-        { label: 'PIX', value: resumo.total_pix, cor: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
-        { label: 'Cartão', value: resumo.total_cartao, cor: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' }
+        { label: 'PIX', value: resumo.total_pix, cor: 'text-violet-700', bg: 'bg-violet-50 border-violet-200' },
+        { label: 'Crédito', value: resumo.total_cartao, cor: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' },
+        { label: 'Débito', value: resumo.total_debito, cor: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' }
       ]
     : []
 
@@ -76,7 +77,7 @@ export default function Fechamento(): React.JSX.Element {
           </div>
 
           {/* Breakdown por forma de pagamento */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {itensResumo.map(({ label, value, cor, bg }) => (
               <div key={label} className={`rounded-lg border p-4 text-center ${bg}`}>
                 <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>

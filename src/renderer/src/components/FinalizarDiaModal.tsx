@@ -40,9 +40,13 @@ export default function FinalizarDiaModal({ aberto, onFechar, relatorio }: Props
                 <p className="text-xs text-violet-600 mb-1">PIX</p>
                 <p className="font-bold text-violet-700">{formatCurrency(relatorio.totalPix)}</p>
               </div>
-              <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center col-span-2">
-                <p className="text-xs text-purple-600 mb-1">Cartão</p>
+              <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center">
+                <p className="text-xs text-purple-600 mb-1">Crédito</p>
                 <p className="font-bold text-purple-700">{formatCurrency(relatorio.totalCartao)}</p>
+              </div>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-center">
+                <p className="text-xs text-blue-600 mb-1">Débito</p>
+                <p className="font-bold text-blue-700">{formatCurrency(relatorio.totalDebito)}</p>
               </div>
             </div>
             <p className="text-xs text-slate-400 mt-3 text-center">

@@ -1,21 +1,28 @@
+import type { Estatisticas, RelatorioComparativo, RelatorioDia } from '../../renderer/src/types'
 import { getDb } from './index'
 import { getSaldoDia } from './saldo'
-import type { RelatorioDia, RelatorioComparativo, Estatisticas } from '../../renderer/src/types'
 
 export function getRelatorioDia(data: string): RelatorioDia {
   const db = getDb()
 
-  const resumo = db.prepare(`
+  const resumo = db
+    .prepare(
+      `
     SELECT
       COALESCE(SUM(total), 0) as totalGeral,
       COALESCE(SUM(CASE WHEN forma_pagamento = 'pix' THEN total ELSE 0 END), 0) as totalPix,
       COALESCE(SUM(CASE WHEN forma_pagamento = 'cartao' THEN total ELSE 0 END), 0) as totalCartao,
       COALESCE(SUM(CASE WHEN forma_pagamento = 'dinheiro' THEN total ELSE 0 END), 0) as totalDinheiro,
+      COALESCE(SUM(CASE WHEN forma_pagamento = 'debito' THEN total ELSE 0 END), 0) as totalDebito,
       COUNT(*) as quantidadeVendas
     FROM vendas WHERE data = ?
-  `).get(data) as Omit<RelatorioDia, 'saldoInicial' | 'maisVendidos' | 'estoquebaixo'>
+  `
+    )
+    .get(data) as Omit<RelatorioDia, 'saldoInicial' | 'maisVendidos' | 'estoquebaixo'>
 
-  const maisVendidos = db.prepare(`
+  const maisVendidos = db
+    .prepare(
+      `
     SELECT iv.nome_produto, SUM(iv.quantidade) as total_quantidade
     FROM itens_venda iv
     JOIN vendas v ON v.id = iv.venda_id
@@ -23,14 +30,20 @@ export function getRelatorioDia(data: string): RelatorioDia {
     GROUP BY iv.nome_produto
     ORDER BY total_quantidade DESC
     LIMIT 5
-  `).all(data) as { nome_produto: string; total_quantidade: number }[]
+  `
+    )
+    .all(data) as { nome_produto: string; total_quantidade: number }[]
 
-  const estoquebaixo = db.prepare(`
+  const estoquebaixo = db
+    .prepare(
+      `
     SELECT id, nome, estoque FROM produtos
     WHERE ativo = 1 AND estoque <= 3
     ORDER BY estoque ASC
     LIMIT 10
-  `).all() as { id: number; nome: string; estoque: number }[]
+  `
+    )
+    .all() as { id: number; nome: string; estoque: number }[]
 
   return {
     ...resumo,
@@ -51,7 +64,8 @@ export function getRelatorioComparativo(dataInicio: string, dataFim: string): Re
         COALESCE(SUM(total), 0) as total,
         COALESCE(SUM(CASE WHEN forma_pagamento = 'pix' THEN total ELSE 0 END), 0) as total_pix,
         COALESCE(SUM(CASE WHEN forma_pagamento = 'cartao' THEN total ELSE 0 END), 0) as total_cartao,
-        COALESCE(SUM(CASE WHEN forma_pagamento = 'dinheiro' THEN total ELSE 0 END), 0) as total_dinheiro
+        COALESCE(SUM(CASE WHEN forma_pagamento = 'dinheiro' THEN total ELSE 0 END), 0) as total_dinheiro,
+        COALESCE(SUM(CASE WHEN forma_pagamento = 'debito' THEN total ELSE 0 END), 0) as total_debito
       FROM vendas
       WHERE data BETWEEN ? AND ?
       GROUP BY data

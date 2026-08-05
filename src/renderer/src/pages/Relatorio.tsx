@@ -57,12 +57,12 @@ export default function Relatorio(): React.JSX.Element {
   const mapaVendas = new Map(dados.dias.map((d) => [d.data, d]))
   const diasCompletos = range.map((data) => mapaVendas.get(data) ?? {
     data, total: 0, quantidade: 0,
-    total_pix: 0, total_cartao: 0, total_dinheiro: 0
+    total_pix: 0, total_cartao: 0, total_dinheiro: 0, total_debito: 0
   } as DiaSummary)
 
   const hoje_ = mapaVendas.get(hoje) ?? {
     data: hoje, total: 0, quantidade: 0,
-    total_pix: 0, total_cartao: 0, total_dinheiro: 0
+    total_pix: 0, total_cartao: 0, total_dinheiro: 0, total_debito: 0
   } as DiaSummary
 
   const diasSemHoje = diasCompletos.filter((d) => d.data !== hoje)
@@ -81,7 +81,8 @@ export default function Relatorio(): React.JSX.Element {
   const formas = [
     { label: 'Dinheiro', valor: hoje_.total_dinheiro, cor: 'bg-emerald-500', texto: 'text-emerald-700' },
     { label: 'PIX', valor: hoje_.total_pix, cor: 'bg-violet-500', texto: 'text-violet-700' },
-    { label: 'Cartão', valor: hoje_.total_cartao, cor: 'bg-purple-500', texto: 'text-purple-700' },
+    { label: 'Crédito', valor: hoje_.total_cartao, cor: 'bg-purple-500', texto: 'text-purple-700' },
+    { label: 'Débito', valor: hoje_.total_debito, cor: 'bg-blue-500', texto: 'text-blue-700' },
   ]
 
   return (
@@ -258,7 +259,8 @@ export default function Relatorio(): React.JSX.Element {
                   {[
                     { label: 'Dinheiro', total: dados.dias.reduce((s, d) => s + d.total_dinheiro, 0), cor: 'bg-emerald-400' },
                     { label: 'PIX', total: dados.dias.reduce((s, d) => s + d.total_pix, 0), cor: 'bg-violet-400' },
-                    { label: 'Cartão', total: dados.dias.reduce((s, d) => s + d.total_cartao, 0), cor: 'bg-purple-400' },
+                    { label: 'Crédito', total: dados.dias.reduce((s, d) => s + d.total_cartao, 0), cor: 'bg-purple-400' },
+                    { label: 'Débito', total: dados.dias.reduce((s, d) => s + (d.total_debito ?? 0), 0), cor: 'bg-blue-400' },
                   ].map(({ label, total, cor }) => (
                     <div key={label} className="flex items-center gap-2">
                       <span className="text-xs text-slate-500 w-14">{label}</span>
