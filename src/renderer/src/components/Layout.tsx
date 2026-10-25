@@ -1,6 +1,19 @@
+import type { PreviaImportacao } from '../../../shared/importacao'
+import { ImportarPlanilhaModal } from './ImportarPlanilhaModal'
+import { MensagemErro } from './ui/mensagem-erro'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { CalendarDays, Package, History, BarChart2, PieChart, ShoppingBasket, Download, Upload, Loader2 } from 'lucide-react'
+import {
+  CalendarDays,
+  Package,
+  History,
+  BarChart2,
+  PieChart,
+  ShoppingBasket,
+  Download,
+  Upload,
+  Loader2
+} from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 import { Logo } from './Logo'
 
@@ -16,6 +29,8 @@ const navItems = [
 type BackupEstado = 'idle' | 'loading' | 'erro'
 
 export default function Layout(): React.JSX.Element {
+  const [previa, setPrevia] = useState<PreviaImportacao | null>(null)
+  const [erro, setErro] = useState('')
   const [exportando, setExportando] = useState<BackupEstado>('idle')
   const [importando, setImportando] = useState<BackupEstado>('idle')
 
@@ -36,18 +51,29 @@ export default function Layout(): React.JSX.Element {
   }
 
   async function handleImportar(): Promise<void> {
+    setErro('')
     setImportando('loading')
     try {
       const res = await window.api.backup.importar()
-      if ('cancelado' in res) { setImportando('idle'); return }
+      if ('cancelado' in res) {
+        setImportando('idle')
+        return
+      }
+      if ('previa' in res) {
+        setPrevia(res.previa)
+        setImportando('idle')
+        return
+      }
       if (res.sucesso) {
         setImportando('idle')
         window.location.reload()
       } else {
+        setErro(res.erro)
         setImportando('erro')
         setTimeout(() => setImportando('idle'), 3000)
       }
     } catch {
+      setErro('Não foi possível abrir o arquivo. Tente novamente.')
       setImportando('erro')
       setTimeout(() => setImportando('idle'), 3000)
     }
@@ -96,13 +122,16 @@ export default function Layout(): React.JSX.Element {
                 : 'text-white/50 hover:bg-white/8 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed'
             )}
           >
-            {exportando === 'loading'
-              ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-              : <Download className="h-3.5 w-3.5 shrink-0" />}
+            {exportando === 'loading' ? (
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+            ) : (
+              <Download className="h-3.5 w-3.5 shrink-0" />
+            )}
             {exportando === 'erro' ? 'Erro ao exportar' : 'Backup'}
           </button>
 
           <button
+            id="restaurar-dados"
             onClick={handleImportar}
             disabled={exportando === 'loading' || importando === 'loading'}
             title="Restaurar backup"
@@ -113,9 +142,11 @@ export default function Layout(): React.JSX.Element {
                 : 'text-white/50 hover:bg-white/8 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed'
             )}
           >
-            {importando === 'loading'
-              ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-              : <Upload className="h-3.5 w-3.5 shrink-0" />}
+            {importando === 'loading' ? (
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5 shrink-0" />
+            )}
             {importando === 'erro' ? 'Erro ao restaurar' : 'Restaurar'}
           </button>
 
@@ -124,8 +155,23 @@ export default function Layout(): React.JSX.Element {
       </aside>
 
       <main className="flex flex-1 flex-col overflow-hidden">
+        <MensagemErro mensagem={erro} />
         <Outlet />
       </main>
+      {previa && (
+        <ImportarPlanilhaModal
+          key={previa.token}
+          previa={previa}
+          onFechar={() => setPrevia(null)}
+          onImportada={(data, quantidade) => {
+            window.location.hash =
+              previa.tipo === 'vendas'
+                ? `/historico?inicio=${data}&fim=${data}&importados=${quantidade}`
+                : '/lista-compras'
+            window.location.reload()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -21,7 +21,7 @@ const PRODUTOS_SEED = [
   { nome: 'Teclado Bluetooth', preco: 110.0, estoque: 8 },
   { nome: 'Smartwatch Básico', preco: 199.0, estoque: 6 },
   { nome: 'Película de Privacidade', preco: 20.0, estoque: 30 },
-  { nome: 'Cabo HDMI 2m', preco: 28.0, estoque: 20 },
+  { nome: 'Cabo HDMI 2m', preco: 28.0, estoque: 20 }
 ]
 
 const FORMAS_PAGAMENTO = ['pix', 'cartao', 'dinheiro', 'debito'] as const
@@ -39,7 +39,7 @@ function aleatorio(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function escolher<T>(arr: T[]): T {
+function escolher<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
@@ -52,21 +52,15 @@ export function rodarSeedDesenvolvimento(): void {
   }
   if (jaTemProdutos.total > 0) return
 
-  const inserirProduto = db.prepare(
-    'INSERT INTO produtos (nome, preco, estoque) VALUES (?, ?, ?)'
-  )
+  const inserirProduto = db.prepare('INSERT INTO produtos (nome, preco, estoque) VALUES (?, ?, ?)')
   const inserirVenda = db.prepare(
     "INSERT INTO vendas (data, total, desconto, forma_pagamento, created_at) VALUES (?, ?, ?, ?, datetime('now', 'localtime'))"
   )
   const inserirItem = db.prepare(
     'INSERT INTO itens_venda (venda_id, produto_id, nome_produto, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?)'
   )
-  const atualizarEstoque = db.prepare(
-    'UPDATE produtos SET estoque = estoque - ? WHERE id = ?'
-  )
-  const inserirSaldo = db.prepare(
-    'INSERT OR IGNORE INTO saldo_diario (data, valor) VALUES (?, ?)'
-  )
+  const atualizarEstoque = db.prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ?')
+  const inserirSaldo = db.prepare('INSERT OR IGNORE INTO saldo_diario (data, valor) VALUES (?, ?)')
   const getEstoque = db.prepare('SELECT estoque FROM produtos WHERE id = ?') as {
     get: (id: number) => { estoque: number } | undefined
   }

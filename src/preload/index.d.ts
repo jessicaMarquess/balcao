@@ -1,3 +1,4 @@
+import type { ConfirmacaoImportacao, ResultadoImportacao } from '../shared/importacao'
 import { ElectronAPI } from '@electron-toolkit/preload'
 import type {
   Produto,
@@ -27,7 +28,10 @@ declare global {
         listar: (data: string) => Promise<Venda[]>
         resumoDia: (data: string) => Promise<ResumoDia>
         listarPeriodo: (dataInicio: string, dataFim: string) => Promise<Venda[]>
-        atualizar: (id: number, dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }) => Promise<Venda>
+        atualizar: (
+          id: number,
+          dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }
+        ) => Promise<Venda>
         excluir: (id: number) => Promise<boolean>
       }
       dia: {
@@ -43,7 +47,9 @@ declare global {
         marcarComprado: (id: number, nome: string, quantidade: number) => Promise<boolean>
         deletar: (id: number) => Promise<boolean>
         limparTodos: () => Promise<boolean>
-        exportarPdf: (itens: { nome: string; quantidade: number }[]) => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
+        exportarPdf: (
+          itens: { nome: string; quantidade: number }[]
+        ) => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
       }
       relatorio: {
         comparativo: (dataInicio: string, dataFim: string) => Promise<RelatorioComparativo>
@@ -53,8 +59,13 @@ declare global {
         csv: (dataInicio: string, dataFim: string) => Promise<boolean>
       }
       backup: {
-        exportar: () => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
-        importar: () => Promise<{ cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }>
+        exportar: () => Promise<
+          { cancelado: true } | { sucesso: true } | { sucesso: false; erro: string }
+        >
+        importar: () => Promise<ResultadoImportacao>
+        confirmarPlanilha: (
+          dados: ConfirmacaoImportacao
+        ) => Promise<{ sucesso: true } | { sucesso: false; erro: string }>
       }
     }
   }

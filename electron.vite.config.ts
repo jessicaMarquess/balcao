@@ -5,7 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {},
-  preload: {},
+  preload: {
+    build: {
+      // Preloads com sandbox precisam das dependências incluídas no bundle.
+      externalizeDeps: false
+    }
+  },
   renderer: {
     resolve: {
       alias: {

@@ -1,3 +1,4 @@
+import type { ConfirmacaoImportacao } from '../shared/importacao'
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { NovaVenda, NovoProduto, ItemCarrinho } from '../renderer/src/types'
@@ -16,8 +17,10 @@ const api = {
     resumoDia: (data: string) => ipcRenderer.invoke('vendas:resumo-dia', data),
     listarPeriodo: (dataInicio: string, dataFim: string) =>
       ipcRenderer.invoke('vendas:listar-periodo', dataInicio, dataFim),
-    atualizar: (id: number, dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }) =>
-      ipcRenderer.invoke('vendas:atualizar', id, dados),
+    atualizar: (
+      id: number,
+      dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }
+    ) => ipcRenderer.invoke('vendas:atualizar', id, dados),
     excluir: (id: number) => ipcRenderer.invoke('vendas:excluir', id)
   },
   dia: {
@@ -51,7 +54,9 @@ const api = {
   },
   backup: {
     exportar: () => ipcRenderer.invoke('backup:exportar'),
-    importar: () => ipcRenderer.invoke('backup:importar')
+    importar: () => ipcRenderer.invoke('backup:importar'),
+    confirmarPlanilha: (dados: ConfirmacaoImportacao) =>
+      ipcRenderer.invoke('backup:confirmar-planilha', dados)
   }
 }
 

@@ -1,7 +1,9 @@
+import { mensagemErro } from '@renderer/lib/validacao'
+import { MensagemErro } from '@renderer/components/ui/mensagem-erro'
 import logoSrc from '@renderer/assets/logo.png'
 import { Button } from '@renderer/components/ui/button'
 import { InputMoeda } from '@renderer/components/ui/input-moeda'
-import { formatCurrency, hojeISO } from '@renderer/lib/utils'
+import { hojeISO } from '@renderer/lib/utils'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -26,23 +28,40 @@ export default function Inicio(): React.JSX.Element {
   const navigate = useNavigate()
   const hoje = hojeISO()
   const [saldo, setSaldo] = useState(0)
+  const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [jaIniciado, setJaIniciado] = useState<boolean | null>(null) // null = carregando
-  const [saldoAtual, setSaldoAtual] = useState(0)
 
   useEffect(() => {
-    Promise.all([window.api.dia.existeSaldo(hoje), window.api.dia.getSaldo(hoje)]).then(
-      ([existe, valor]) => {
-        setJaIniciado(existe)
-        setSaldoAtual(valor)
-      }
-    )
+    window.api.dia
+      .existeSaldo(hoje)
+      .then(setJaIniciado)
+      .catch((error) =>
+        setErro(
+          mensagemErro(
+            error,
+            'Não foi possível carregar o caixa. Feche e abra o aplicativo para tentar novamente.'
+          )
+        )
+      )
   }, [hoje])
 
   async function iniciar(): Promise<void> {
+    if (salvando) return
+    if (!Number.isFinite(saldo) || saldo < 0) {
+      setErro('O saldo deve ser um número maior ou igual a 0.')
+      return
+    }
+    setErro('')
     setSalvando(true)
-    await window.api.dia.setSaldo(hoje, saldo)
-    navigate('/dia')
+    try {
+      await window.api.dia.setSaldo(hoje, saldo)
+      navigate('/dia')
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível iniciar o dia. Tente novamente.'))
+    } finally {
+      setSalvando(false)
+    }
   }
 
   return (
@@ -69,20 +88,14 @@ export default function Inicio(): React.JSX.Element {
           </p>
         </div>
 
+        <MensagemErro mensagem={erro} />
+
         {/* Card */}
         {jaIniciado === null ? null : jaIniciado ? (
           /* Dia já iniciado */
-          <div className="flex flex-col items-center gap-4 w-64 bg-white/5 border border-white/10 rounded-2xl px-6 py-6 backdrop-blur-sm">
-            {saldoAtual > 0 && (
-              <div className="text-center">
-                <p className="text-xs text-white/40 mb-1">Saldo inicial de hoje</p>
-                <p className="text-xl font-bold text-violet-300">{formatCurrency(saldoAtual)}</p>
-              </div>
-            )}
-            <Button onClick={() => navigate('/dia')} size="lg" className="w-full">
-              Continuar com o dia
-            </Button>
-          </div>
+          <Button onClick={() => navigate('/dia')} size="lg">
+            Continuar com o dia
+          </Button>
         ) : (
           /* Novo dia — pede saldo */
           <div className="flex flex-col items-center gap-3 w-64 bg-white/5 border border-white/10 rounded-2xl px-6 py-6 backdrop-blur-sm">

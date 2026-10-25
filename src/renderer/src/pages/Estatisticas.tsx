@@ -15,9 +15,24 @@ const FORMAS_LABEL: Record<string, string> = {
 }
 
 const FORMAS_COR: Record<string, { bar: string; bg: string; text: string; border: string }> = {
-  dinheiro: { bar: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  pix: { bar: 'bg-violet-500', bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
-  cartao: { bar: 'bg-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  dinheiro: {
+    bar: 'bg-emerald-500',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    border: 'border-emerald-200'
+  },
+  pix: {
+    bar: 'bg-violet-500',
+    bg: 'bg-violet-50',
+    text: 'text-violet-700',
+    border: 'border-violet-200'
+  },
+  cartao: {
+    bar: 'bg-purple-500',
+    bg: 'bg-purple-50',
+    text: 'text-purple-700',
+    border: 'border-purple-200'
+  },
   debito: { bar: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
 }
 
@@ -52,9 +67,14 @@ export default function Estatisticas(): React.JSX.Element {
   const [dados, setDados] = useState<Estatisticas | null>(null)
 
   useEffect(() => {
+    let ativo = true
     const { inicio, fim } = getRangeFromPeriodo(periodo, hoje)
-    setDados(null)
-    window.api.relatorio.estatisticas(inicio, fim).then(setDados)
+    window.api.relatorio.estatisticas(inicio, fim).then((resultado) => {
+      if (ativo) setDados(resultado)
+    })
+    return () => {
+      ativo = false
+    }
   }, [periodo, hoje])
 
   // Gera array completo de 7 dias com totais
@@ -129,10 +149,15 @@ export default function Estatisticas(): React.JSX.Element {
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full rounded-t-lg bg-slate-100" style={{ height: '3px' }} />
+                        <div
+                          className="w-full rounded-t-lg bg-slate-100"
+                          style={{ height: '3px' }}
+                        />
                       )}
                     </div>
-                    <span className={`text-xs font-semibold ${isTop ? 'text-violet-600' : 'text-slate-400'}`}>
+                    <span
+                      className={`text-xs font-semibold ${isTop ? 'text-violet-600' : 'text-slate-400'}`}
+                    >
                       {DIAS[dia]}
                     </span>
                   </div>
@@ -156,21 +181,25 @@ export default function Estatisticas(): React.JSX.Element {
                     <div
                       key={d.dia}
                       className={`rounded-xl border p-4 transition-all ${
-                        i === 0
-                          ? 'border-violet-200 bg-violet-50'
-                          : 'border-slate-100 bg-slate-50'
+                        i === 0 ? 'border-violet-200 bg-violet-50' : 'border-slate-100 bg-slate-50'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${MEDALHA_ESTILOS[i]}`}>
+                          <span
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${MEDALHA_ESTILOS[i]}`}
+                          >
                             {i + 1}
                           </span>
-                          <span className={`text-sm font-bold ${i === 0 ? 'text-violet-700' : 'text-slate-700'}`}>
+                          <span
+                            className={`text-sm font-bold ${i === 0 ? 'text-violet-700' : 'text-slate-700'}`}
+                          >
                             {DIAS_FULL[d.dia]}
                           </span>
                         </div>
-                        <span className={`text-sm font-bold ${i === 0 ? 'text-violet-700' : 'text-slate-600'}`}>
+                        <span
+                          className={`text-sm font-bold ${i === 0 ? 'text-violet-700' : 'text-slate-600'}`}
+                        >
                           {formatCurrency(d.total)}
                         </span>
                       </div>
@@ -207,11 +236,17 @@ export default function Estatisticas(): React.JSX.Element {
                   const pct = (item.total_quantidade / maxQtd) * 100
                   return (
                     <div key={i} className="flex items-center gap-3">
-                      <span className="text-xs text-slate-300 font-mono w-5 text-right">{i + 1}</span>
+                      <span className="text-xs text-slate-300 font-mono w-5 text-right">
+                        {i + 1}
+                      </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-slate-700 truncate font-medium">{item.nome_produto}</span>
-                          <span className="text-xs text-slate-500 ml-2 shrink-0">{item.total_quantidade} un.</span>
+                          <span className="text-sm text-slate-700 truncate font-medium">
+                            {item.nome_produto}
+                          </span>
+                          <span className="text-xs text-slate-500 ml-2 shrink-0">
+                            {item.total_quantidade} un.
+                          </span>
                         </div>
                         <div className="h-1 rounded-full bg-slate-100">
                           <div
@@ -248,7 +283,10 @@ export default function Estatisticas(): React.JSX.Element {
                     const cor = FORMAS_COR[f.forma] ?? FORMAS_COR['dinheiro']
                     const pct = totalGeral > 0 ? Math.round((f.total / totalGeral) * 100) : 0
                     return (
-                      <div key={f.forma} className={`rounded-xl border p-3 text-center ${cor.bg} ${cor.border}`}>
+                      <div
+                        key={f.forma}
+                        className={`rounded-xl border p-3 text-center ${cor.bg} ${cor.border}`}
+                      >
                         <p className={`text-xs font-semibold mb-1 ${cor.text}`}>
                           {FORMAS_LABEL[f.forma] ?? f.forma}
                         </p>
@@ -285,7 +323,9 @@ export default function Estatisticas(): React.JSX.Element {
 
                 <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
                   <span className="text-xs text-slate-400">Total no período</span>
-                  <span className="text-sm font-bold text-slate-800">{formatCurrency(totalGeral)}</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {formatCurrency(totalGeral)}
+                  </span>
                 </div>
               </div>
             )}

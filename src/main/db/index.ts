@@ -80,6 +80,11 @@ function migrar(db: Database.Database): void {
     db.exec('ALTER TABLE vendas ADD COLUMN desconto REAL NOT NULL DEFAULT 0')
   }
 
+  if (!colunas.some((c) => c.name === 'importada')) {
+    db.exec('ALTER TABLE vendas ADD COLUMN importada INTEGER NOT NULL DEFAULT 0')
+  }
+  db.exec('CREATE TABLE IF NOT EXISTS importacoes (hash TEXT PRIMARY KEY, arquivo TEXT NOT NULL)')
+
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_itens_venda_id ON itens_venda(venda_id);
   `)

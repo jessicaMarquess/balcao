@@ -33,3 +33,23 @@ npm run dev
 npm run build:win
 ```
 # balcao
+
+## Importar planilhas antigas
+
+Em **Restaurar**, selecione um arquivo `.ods` de `arquivos_testes`:
+
+- **Movimento Loja**: confira os registros e pagamentos na prévia e informe a data completa. Cada linha vira uma venda histórica; o estoque atual não é alterado, inclusive ao editar ou excluir essa venda. Produtos novos ficam com estoque 0; preços e estoques existentes são preservados.
+- **Agenda Financeira**: selecione os produtos da aba **Lista de Compras** e confira as quantidades. Categorias e anotações aparecem na prévia para revisão e começam desmarcadas. As demais abas não são importadas.
+- O modelo de movimento vazio não contém registros e exibe uma mensagem.
+
+Os valores nas colunas de categorias sugerem dinheiro; PIX e cartão usam suas colunas, e descrições com crédito/débito sugerem a forma correspondente. Revise essas sugestões antes de confirmar. O saldo inicial existente na data é preservado. O mesmo arquivo não pode ser importado novamente, mesmo que seja renomeado. Arquivos modificados são considerados novos: não importe versões sobrepostas.
+
+A importação é transacional: se ocorrer erro, nenhuma linha é gravada. Backups `.db` continuam disponíveis no seletor e mantêm a função de substituir o banco.
+
+Para testar a importação dos nove arquivos em um banco temporário, sem usar o banco da aplicação:
+
+```bash
+npm run test:importacao
+```
+
+A leitura ODS usa [SheetJS da distribuição oficial](https://docs.sheetjs.com/docs/getting-started/installation/nodejs/).

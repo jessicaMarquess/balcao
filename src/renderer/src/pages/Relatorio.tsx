@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, Minus as TrendingFlat, Package } from 'lucide-react'
 import { Badge } from '@renderer/components/ui/badge'
-import { formatCurrency, formatDate, hojeISO, dateToISO } from '@renderer/lib/utils'
+import { dateToISO, formatCurrency, formatDate, hojeISO } from '@renderer/lib/utils'
 import type { DiaSummary, RelatorioComparativo } from '@renderer/types'
+import { Package, TrendingDown, Minus as TrendingFlat, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 type Periodo = 7 | 14 | 30
 
@@ -55,15 +55,31 @@ export default function Relatorio(): React.JSX.Element {
   const inicio = subDias(hoje, periodo - 1)
   const range = gerarRange(inicio, hoje)
   const mapaVendas = new Map(dados.dias.map((d) => [d.data, d]))
-  const diasCompletos = range.map((data) => mapaVendas.get(data) ?? {
-    data, total: 0, quantidade: 0,
-    total_pix: 0, total_cartao: 0, total_dinheiro: 0, total_debito: 0
-  } as DiaSummary)
+  const diasCompletos = range.map(
+    (data) =>
+      mapaVendas.get(data) ??
+      ({
+        data,
+        total: 0,
+        quantidade: 0,
+        total_pix: 0,
+        total_cartao: 0,
+        total_dinheiro: 0,
+        total_debito: 0
+      } as DiaSummary)
+  )
 
-  const hoje_ = mapaVendas.get(hoje) ?? {
-    data: hoje, total: 0, quantidade: 0,
-    total_pix: 0, total_cartao: 0, total_dinheiro: 0, total_debito: 0
-  } as DiaSummary
+  const hoje_ =
+    mapaVendas.get(hoje) ??
+    ({
+      data: hoje,
+      total: 0,
+      quantidade: 0,
+      total_pix: 0,
+      total_cartao: 0,
+      total_dinheiro: 0,
+      total_debito: 0
+    } as DiaSummary)
 
   const diasSemHoje = diasCompletos.filter((d) => d.data !== hoje)
   const maxTotal = Math.max(...diasCompletos.map((d) => d.total), 1)
@@ -73,16 +89,20 @@ export default function Relatorio(): React.JSX.Element {
   const melhorDia = [...diasCompletos].sort((a, b) => b.total - a.total)[0]
 
   const ontem = mapaVendas.get(subDias(hoje, 1))
-  const variacaoOntem = ontem && ontem.total > 0
-    ? ((hoje_.total - ontem.total) / ontem.total) * 100
-    : null
+  const variacaoOntem =
+    ontem && ontem.total > 0 ? ((hoje_.total - ontem.total) / ontem.total) * 100 : null
 
   const totalFormas = hoje_.total || 1
   const formas = [
-    { label: 'Dinheiro', valor: hoje_.total_dinheiro, cor: 'bg-emerald-500', texto: 'text-emerald-700' },
+    {
+      label: 'Dinheiro',
+      valor: hoje_.total_dinheiro,
+      cor: 'bg-emerald-500',
+      texto: 'text-emerald-700'
+    },
     { label: 'PIX', valor: hoje_.total_pix, cor: 'bg-violet-500', texto: 'text-violet-700' },
     { label: 'Crédito', valor: hoje_.total_cartao, cor: 'bg-purple-500', texto: 'text-purple-700' },
-    { label: 'Débito', valor: hoje_.total_debito, cor: 'bg-blue-500', texto: 'text-blue-700' },
+    { label: 'Débito', valor: hoje_.total_debito, cor: 'bg-blue-500', texto: 'text-blue-700' }
   ]
 
   return (
@@ -121,20 +141,24 @@ export default function Relatorio(): React.JSX.Element {
               </p>
             </div>
             {variacaoOntem !== null && (
-              <div className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-bold ${
-                variacaoOntem > 0
-                  ? 'bg-emerald-400/20 text-emerald-300'
-                  : variacaoOntem < 0
-                  ? 'bg-red-400/20 text-red-300'
-                  : 'bg-white/10 text-white/70'
-              }`}>
-                {variacaoOntem > 0
-                  ? <TrendingUp className="h-4 w-4" />
-                  : variacaoOntem < 0
-                  ? <TrendingDown className="h-4 w-4" />
-                  : <TrendingFlat className="h-4 w-4" />
-                }
-                {variacaoOntem > 0 ? '+' : ''}{variacaoOntem.toFixed(0)}% vs ontem
+              <div
+                className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-bold ${
+                  variacaoOntem > 0
+                    ? 'bg-emerald-400/20 text-emerald-300'
+                    : variacaoOntem < 0
+                      ? 'bg-red-400/20 text-red-300'
+                      : 'bg-white/10 text-white/70'
+                }`}
+              >
+                {variacaoOntem > 0 ? (
+                  <TrendingUp className="h-4 w-4" />
+                ) : variacaoOntem < 0 ? (
+                  <TrendingDown className="h-4 w-4" />
+                ) : (
+                  <TrendingFlat className="h-4 w-4" />
+                )}
+                {variacaoOntem > 0 ? '+' : ''}
+                {variacaoOntem.toFixed(0)}% vs ontem
               </div>
             )}
           </div>
@@ -142,20 +166,22 @@ export default function Relatorio(): React.JSX.Element {
           {/* Barras de forma de pagamento */}
           {hoje_.total > 0 && (
             <div className="flex flex-col gap-2">
-              {formas.filter(f => f.valor > 0).map(({ label, valor, cor }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="text-xs text-violet-200 w-14">{label}</span>
-                  <div className="flex-1 h-1.5 rounded-full bg-white/20">
-                    <div
-                      className={`h-1.5 rounded-full ${cor} transition-all duration-500`}
-                      style={{ width: `${(valor / totalFormas) * 100}%` }}
-                    />
+              {formas
+                .filter((f) => f.valor > 0)
+                .map(({ label, valor, cor }) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="text-xs text-violet-200 w-14">{label}</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-white/20">
+                      <div
+                        className={`h-1.5 rounded-full ${cor} transition-all duration-500`}
+                        style={{ width: `${(valor / totalFormas) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-white w-20 text-right">
+                      {formatCurrency(valor)}
+                    </span>
                   </div>
-                  <span className="text-xs font-semibold text-white w-20 text-right">
-                    {formatCurrency(valor)}
-                  </span>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
@@ -169,13 +195,17 @@ export default function Relatorio(): React.JSX.Element {
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
             <p className="text-xs text-slate-400 mb-1 uppercase tracking-wide">Média/dia</p>
             <p className="text-lg font-bold text-slate-800">{formatCurrency(media)}</p>
-            <p className="text-xs text-slate-400">{diasComVenda} dia{diasComVenda !== 1 ? 's' : ''} c/ vendas</p>
+            <p className="text-xs text-slate-400">
+              {diasComVenda} dia{diasComVenda !== 1 ? 's' : ''} c/ vendas
+            </p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
             <p className="text-xs text-slate-400 mb-1 uppercase tracking-wide">Melhor dia</p>
             {melhorDia.total > 0 ? (
               <>
-                <p className="text-lg font-bold text-slate-800">{formatCurrency(melhorDia.total)}</p>
+                <p className="text-lg font-bold text-slate-800">
+                  {formatCurrency(melhorDia.total)}
+                </p>
                 <p className="text-xs text-slate-400">{formatDate(melhorDia.data)}</p>
               </>
             ) : (
@@ -214,7 +244,9 @@ export default function Relatorio(): React.JSX.Element {
                       <div className="w-full rounded-t-md bg-slate-100" style={{ height: '3px' }} />
                     )}
                   </div>
-                  <span className={`text-[9px] font-medium ${isHoje ? 'text-violet-600' : 'text-slate-400'}`}>
+                  <span
+                    className={`text-[9px] font-medium ${isHoje ? 'text-violet-600' : 'text-slate-400'}`}
+                  >
                     {periodo <= 14 ? diaLabel(dia.data) : diaSemana(dia.data)[0]}
                   </span>
                 </div>
@@ -237,7 +269,9 @@ export default function Relatorio(): React.JSX.Element {
                 {dados.maisVendidos.slice(0, 6).map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="text-xs text-slate-300 w-4 font-mono">{i + 1}</span>
-                    <span className="flex-1 text-sm text-slate-700 truncate">{item.nome_produto}</span>
+                    <span className="flex-1 text-sm text-slate-700 truncate">
+                      {item.nome_produto}
+                    </span>
                     <Badge variant="secondary">{item.total_quantidade} un.</Badge>
                   </div>
                 ))}
@@ -257,10 +291,26 @@ export default function Relatorio(): React.JSX.Element {
               ) : (
                 <div className="flex flex-col gap-2.5">
                   {[
-                    { label: 'Dinheiro', total: dados.dias.reduce((s, d) => s + d.total_dinheiro, 0), cor: 'bg-emerald-400' },
-                    { label: 'PIX', total: dados.dias.reduce((s, d) => s + d.total_pix, 0), cor: 'bg-violet-400' },
-                    { label: 'Crédito', total: dados.dias.reduce((s, d) => s + d.total_cartao, 0), cor: 'bg-purple-400' },
-                    { label: 'Débito', total: dados.dias.reduce((s, d) => s + (d.total_debito ?? 0), 0), cor: 'bg-blue-400' },
+                    {
+                      label: 'Dinheiro',
+                      total: dados.dias.reduce((s, d) => s + d.total_dinheiro, 0),
+                      cor: 'bg-emerald-400'
+                    },
+                    {
+                      label: 'PIX',
+                      total: dados.dias.reduce((s, d) => s + d.total_pix, 0),
+                      cor: 'bg-violet-400'
+                    },
+                    {
+                      label: 'Crédito',
+                      total: dados.dias.reduce((s, d) => s + d.total_cartao, 0),
+                      cor: 'bg-purple-400'
+                    },
+                    {
+                      label: 'Débito',
+                      total: dados.dias.reduce((s, d) => s + (d.total_debito ?? 0), 0),
+                      cor: 'bg-blue-400'
+                    }
                   ].map(({ label, total, cor }) => (
                     <div key={label} className="flex items-center gap-2">
                       <span className="text-xs text-slate-500 w-14">{label}</span>
@@ -304,36 +354,47 @@ export default function Relatorio(): React.JSX.Element {
         </div>
 
         {/* Comparativo dia a dia (últimos 7 dias excluindo hoje) */}
-        {diasSemHoje.filter(d => d.total > 0).length > 0 && (
+        {diasSemHoje.filter((d) => d.total > 0).length > 0 && (
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
               Detalhe por dia
             </p>
             <div className="flex flex-col gap-1.5">
-              {[...diasCompletos].reverse().filter(d => d.total > 0).slice(0, 7).map((dia) => {
-                const isHoje = dia.data === hoje
-                const pctDoMelhor = melhorDia.total > 0 ? (dia.total / melhorDia.total) * 100 : 0
-                return (
-                  <div key={dia.data} className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isHoje ? 'bg-violet-50 border border-violet-100' : ''}`}>
-                    <span className={`text-xs font-medium w-16 ${isHoje ? 'text-violet-600' : 'text-slate-400'}`}>
-                      {isHoje ? 'Hoje' : diaLabel(dia.data)}
-                    </span>
-                    <span className="text-xs text-slate-400 w-8">{diaSemana(dia.data)}</span>
-                    <div className="flex-1 h-1.5 rounded-full bg-slate-100">
-                      <div
-                        className={`h-1.5 rounded-full transition-all duration-500 ${isHoje ? 'bg-violet-500' : 'bg-slate-300'}`}
-                        style={{ width: `${pctDoMelhor}%` }}
-                      />
+              {[...diasCompletos]
+                .reverse()
+                .filter((d) => d.total > 0)
+                .slice(0, 7)
+                .map((dia) => {
+                  const isHoje = dia.data === hoje
+                  const pctDoMelhor = melhorDia.total > 0 ? (dia.total / melhorDia.total) * 100 : 0
+                  return (
+                    <div
+                      key={dia.data}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isHoje ? 'bg-violet-50 border border-violet-100' : ''}`}
+                    >
+                      <span
+                        className={`text-xs font-medium w-16 ${isHoje ? 'text-violet-600' : 'text-slate-400'}`}
+                      >
+                        {isHoje ? 'Hoje' : diaLabel(dia.data)}
+                      </span>
+                      <span className="text-xs text-slate-400 w-8">{diaSemana(dia.data)}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-slate-100">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-500 ${isHoje ? 'bg-violet-500' : 'bg-slate-300'}`}
+                          style={{ width: `${pctDoMelhor}%` }}
+                        />
+                      </div>
+                      <span
+                        className={`text-sm font-bold w-24 text-right ${isHoje ? 'text-violet-700' : 'text-slate-700'}`}
+                      >
+                        {formatCurrency(dia.total)}
+                      </span>
+                      <span className="text-xs text-slate-400 w-16 text-right">
+                        {dia.quantidade} venda{dia.quantidade !== 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <span className={`text-sm font-bold w-24 text-right ${isHoje ? 'text-violet-700' : 'text-slate-700'}`}>
-                      {formatCurrency(dia.total)}
-                    </span>
-                    <span className="text-xs text-slate-400 w-16 text-right">
-                      {dia.quantidade} venda{dia.quantidade !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
           </div>
         )}

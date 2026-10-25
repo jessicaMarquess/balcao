@@ -32,9 +32,10 @@ export function atualizarQuantidade(id: number, quantidade: number): void {
 
 export function marcarComprado(id: number, nome: string, quantidade: number): void {
   const db = getDb()
-  db.prepare(
-    'UPDATE produtos SET estoque = estoque + ? WHERE LOWER(nome) = LOWER(?)'
-  ).run(quantidade, nome)
+  db.prepare('UPDATE produtos SET estoque = estoque + ? WHERE LOWER(nome) = LOWER(?)').run(
+    quantidade,
+    nome
+  )
   db.prepare('DELETE FROM lista_compras WHERE id = ?').run(id)
 }
 

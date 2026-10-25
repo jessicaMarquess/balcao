@@ -26,10 +26,7 @@ export function hojeISO(): string {
 }
 
 function normalizar(str: string): string {
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+  return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 }
 
 export function fuzzySearch<T>(items: T[], query: string, getLabel: (item: T) => string): T[] {

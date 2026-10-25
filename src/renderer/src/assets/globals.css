@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'react-day-picker/style.css';
 
 :root {
   --background: 0 0% 100%;
@@ -29,7 +30,10 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: #f7f5ff;
   color: #0e0920;
 }
@@ -58,5 +62,68 @@ body {
 
   main {
     padding: 24px !important;
+  }
+}
+
+/* Calendário de período: alvos de 44 px e contraste da identidade do Balcão. */
+.periodo-calendario {
+  --rdp-accent-color: #6d28d9;
+  --rdp-accent-background-color: #ede9fe;
+  --rdp-day_button-width: 44px;
+  --rdp-day_button-height: 44px;
+  --rdp-day_button-border-radius: 8px;
+  --rdp-nav_button-width: 44px;
+  --rdp-nav_button-height: 44px;
+  --rdp-months-gap: 24px;
+  --rdp-weekday-opacity: 1;
+  color: #334155;
+  font-size: 16px;
+}
+.periodo-calendario .rdp-month_caption {
+  font-size: 16px;
+  font-weight: 600;
+}
+.periodo-calendario .rdp-weekday {
+  font-size: 14px;
+  color: #475569;
+}
+.periodo-calendario button:focus-visible {
+  outline: 2px solid #6d28d9;
+  outline-offset: 2px;
+}
+.periodo-calendario .rdp-day_button:hover {
+  background-color: #ede9fe;
+  color: #4c1d95;
+}
+.periodo-calendario .rdp-months {
+  flex-wrap: nowrap;
+}
+@media (max-width: 380px) {
+  .periodo-calendario {
+    --rdp-day-width: 36px;
+    --rdp-day-height: 44px;
+    --rdp-day_button-width: 36px;
+  }
+}
+
+.periodo-calendario .rdp-selected {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Em janelas estreitas, o seletor usa a área disponível da tela. */
+@media (max-width: 999px) {
+  [data-radix-popper-content-wrapper]:has(> .periodo-popover) {
+    inset: 16px !important;
+    transform: none !important;
+    width: calc(100vw - 32px) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 32px);
+    display: flex;
+    justify-content: center;
+  }
+  .periodo-popover {
+    width: 100%;
+    max-height: calc(100dvh - 32px);
   }
 }

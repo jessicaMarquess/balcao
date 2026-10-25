@@ -1,3 +1,4 @@
+import { mensagemErro } from '@renderer/lib/validacao'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
@@ -51,7 +52,10 @@ export default function EditarVendaModal({
 
   useEffect(() => {
     if (aberto) {
-      window.api.produtos.listar().then(setProdutos)
+      window.api.produtos
+        .listar()
+        .then(setProdutos)
+        .catch((error) => setErro(mensagemErro(error, 'Não foi possível carregar os produtos.')))
     }
   }, [aberto])
 
@@ -115,7 +119,12 @@ export default function EditarVendaModal({
       onFechar()
     } catch (err) {
       console.error('Erro ao salvar venda:', err)
-      setErro(err instanceof Error ? err.message : String(err))
+      setErro(
+        mensagemErro(
+          err,
+          'Não foi possível concluir a operação. Confira os itens e tente novamente.'
+        )
+      )
     } finally {
       setSalvando(false)
     }
@@ -131,7 +140,12 @@ export default function EditarVendaModal({
       onFechar()
     } catch (err) {
       console.error('Erro ao excluir venda:', err)
-      setErro(err instanceof Error ? err.message : String(err))
+      setErro(
+        mensagemErro(
+          err,
+          'Não foi possível concluir a operação. Confira os itens e tente novamente.'
+        )
+      )
       setConfirmandoExclusao(false)
     } finally {
       setSalvando(false)

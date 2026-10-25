@@ -25,7 +25,14 @@ export default defineConfig(
     },
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
-      ...eslintPluginReactRefresh.configs.vite.rules
+      ...eslintPluginReactRefresh.configs.vite.rules,
+      'react-refresh/only-export-components': ['error', { allowConstantExport: true }]
+    }
+  },
+  {
+    files: ['src/renderer/src/components/ui/{badge,button}.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off'
     }
   },
   eslintConfigPrettier

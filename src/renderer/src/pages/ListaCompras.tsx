@@ -1,3 +1,4 @@
+import { mensagemErro } from '@renderer/lib/validacao'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, CheckCheck, Minus, PackageSearch, Loader2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
@@ -18,24 +19,39 @@ export default function ListaCompras(): React.JSX.Element {
 
   useEffect(() => {
     carregar()
-    window.api.produtos.listar().then((lista) =>
-      setSugestoes(lista.filter((p) => p.ativo && p.estoque <= ESTOQUE_BAIXO))
-    )
+    window.api.produtos
+      .listar()
+      .then((lista) => setSugestoes(lista.filter((p) => p.ativo && p.estoque <= ESTOQUE_BAIXO)))
+      .catch((error) => setErro(mensagemErro(error, 'Não foi possível carregar as sugestões.')))
   }, [])
 
   async function carregar(): Promise<void> {
-    const lista = await window.api.listaCompras.listar()
-    setItens(lista.map((i) => ({ ...i, quantidade: Number(i.quantidade) || 1 })))
+    try {
+      const lista = await window.api.listaCompras.listar()
+      setItens(lista.map((i) => ({ ...i, quantidade: Number(i.quantidade) || 1 })))
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível carregar a lista de compras.'))
+    }
   }
 
   async function adicionar(nome = novoItem.trim(), quantidade = novaQtd): Promise<void> {
-    if (!nome) return
+    setErro(null)
+    if (!nome.trim()) {
+      setErro('Informe o nome do item.')
+      return
+    }
+    if (!Number.isSafeInteger(quantidade) || quantidade < 1) {
+      setErro('A quantidade deve ser um número inteiro maior ou igual a 1.')
+      return
+    }
     setAdicionando(true)
     try {
       await window.api.listaCompras.adicionar(nome, quantidade)
       setNovoItem('')
       setNovaQtd(1)
       await carregar()
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível adicionar o item. Tente novamente.'))
     } finally {
       setAdicionando(false)
     }
@@ -44,8 +60,13 @@ export default function ListaCompras(): React.JSX.Element {
   async function alterarQuantidade(item: ItemListaCompras, delta: number): Promise<void> {
     const nova = (Number(item.quantidade) || 1) + delta
     if (nova < 1) return
-    setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantidade: nova } : i)))
-    await window.api.listaCompras.atualizarQuantidade(item.id, nova)
+    setErro(null)
+    try {
+      await window.api.listaCompras.atualizarQuantidade(item.id, nova)
+      setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantidade: nova } : i)))
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível atualizar a quantidade.'))
+    }
   }
 
   async function recarregarSugestoes(): Promise<void> {
@@ -58,14 +79,21 @@ export default function ListaCompras(): React.JSX.Element {
     try {
       await window.api.listaCompras.marcarComprado(item.id, item.nome, item.quantidade)
       await Promise.all([carregar(), recarregarSugestoes()])
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível marcar o item como comprado. Tente novamente.'))
     } finally {
       setMarcando(null)
     }
   }
 
   async function deletar(id: number): Promise<void> {
-    await window.api.listaCompras.deletar(id)
-    await carregar()
+    setErro(null)
+    try {
+      await window.api.listaCompras.deletar(id)
+      await carregar()
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível remover o item.'))
+    }
   }
 
   async function fecharLista(): Promise<void> {
@@ -78,6 +106,8 @@ export default function ListaCompras(): React.JSX.Element {
       if (!resultado.sucesso) {
         setErro(resultado.erro)
       }
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível exportar o PDF. Tente novamente.'))
     } finally {
       setFechando(false)
     }
@@ -111,7 +141,7 @@ export default function ListaCompras(): React.JSX.Element {
       {/* Mensagem de erro */}
       {erro && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between">
-          <span>Erro ao salvar PDF: {erro}</span>
+          <span role="alert">{erro}</span>
           <button onClick={() => setErro(null)} className="text-red-400 hover:text-red-700 ml-4">
             ✕
           </button>
@@ -215,17 +245,22 @@ export default function ListaCompras(): React.JSX.Element {
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <input
+                  <Input
                     type="number"
                     min="1"
                     value={item.quantidade}
                     onChange={(e) => {
                       const v = Math.max(1, parseInt(e.target.value) || 1)
-                      setItens((prev) => prev.map((i) => i.id === item.id ? { ...i, quantidade: v } : i))
+                      setItens((prev) =>
+                        prev.map((i) => (i.id === item.id ? { ...i, quantidade: v } : i))
+                      )
                     }}
                     onBlur={(e) => {
                       const v = Math.max(1, parseInt(e.target.value) || 1)
-                      window.api.listaCompras.atualizarQuantidade(item.id, v)
+                      window.api.listaCompras.atualizarQuantidade(item.id, v).catch((error) => {
+                        setErro(mensagemErro(error, 'Não foi possível atualizar a quantidade.'))
+                        void carregar()
+                      })
                     }}
                     className="w-10 text-center text-sm font-semibold text-slate-700 border border-violet-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-violet-400 py-0.5"
                   />

@@ -1,3 +1,5 @@
+import { mensagemErro, validarFormularioProduto } from '@renderer/lib/validacao'
+import { MensagemErro } from '@renderer/components/ui/mensagem-erro'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
@@ -30,8 +32,11 @@ export default function VendaModal({
   const [busca, setBusca] = useState('')
   const [itens, setItens] = useState<ItemCarrinho[]>([])
   const [desconto, setDesconto] = useState(0)
-  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro' | 'debito'>('dinheiro')
+  const [formaPagamento, setFormaPagamento] = useState<'pix' | 'cartao' | 'dinheiro' | 'debito'>(
+    'dinheiro'
+  )
   const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
 
   // Cadastro rápido de produto
   const [modoRegistro, setModoRegistro] = useState(false)
@@ -45,7 +50,18 @@ export default function VendaModal({
 
   useEffect(() => {
     if (aberto && !abertoPrev.current) {
-      window.api.produtos.listar().then(setProdutos)
+      setErro('')
+      window.api.produtos
+        .listar()
+        .then(setProdutos)
+        .catch((error) => {
+          setErro(
+            mensagemErro(
+              error,
+              'Não foi possível carregar os produtos. Reabra a venda para tentar novamente.'
+            )
+          )
+        })
     }
     if (!aberto && abertoPrev.current) {
       setBusca('')
@@ -71,7 +87,14 @@ export default function VendaModal({
   }
 
   async function registrarEAdicionar(): Promise<void> {
-    if (!regNome.trim() || regPreco <= 0) return
+    if (registrando) return
+    const validacao = validarFormularioProduto({
+      nome: regNome,
+      preco: regPreco,
+      estoque: regEstoque
+    })
+    setErro(validacao)
+    if (validacao) return
     setRegistrando(true)
     try {
       const produto = await window.api.produtos.criar({
@@ -80,8 +103,11 @@ export default function VendaModal({
         estoque: regEstoque
       })
       setProdutos((prev) => [...prev, produto])
-      adicionarProduto(produto)
+      if (produto.estoque > 0) adicionarProduto(produto)
+      else setErro('Produto cadastrado com estoque 0. Atualize o estoque antes de vender.')
       fecharModoRegistro()
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível cadastrar o produto. Tente novamente.'))
     } finally {
       setRegistrando(false)
     }
@@ -139,6 +165,8 @@ export default function VendaModal({
 
   async function registrar(): Promise<void> {
     if (itens.length === 0) return
+    if (salvando) return
+    setErro('')
     setSalvando(true)
     try {
       await window.api.vendas.registrar({
@@ -149,6 +177,8 @@ export default function VendaModal({
       })
       onVendaRegistrada()
       onFechar()
+    } catch (error) {
+      setErro(mensagemErro(error, 'Não foi possível registrar a venda. Tente novamente.'))
     } finally {
       setSalvando(false)
     }
@@ -162,6 +192,7 @@ export default function VendaModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-4 mt-2">
+          <MensagemErro mensagem={erro} />
           {/* Autocomplete ou Cadastro rápido */}
           {modoRegistro ? (
             <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-4 flex flex-col gap-3">
@@ -184,30 +215,43 @@ export default function VendaModal({
                   onChange={(e) => setRegNome(e.target.value)}
                   autoFocus
                 />
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-500 mb-1">Preço</p>
-                    <InputMoeda value={regPreco} onChange={setRegPreco} />
+                <div className="grid grid-cols-2 items-start gap-4">
+                  <div className="min-w-0 space-y-2">
+                    <label
+                      htmlFor="cadastro-rapido-preco"
+                      className="block text-sm font-medium text-slate-600"
+                    >
+                      Preço
+                    </label>
+                    <InputMoeda
+                      id="cadastro-rapido-preco"
+                      value={regPreco}
+                      onChange={setRegPreco}
+                    />
                   </div>
-                  <div className="w-28">
-                    <p className="text-xs text-slate-500 mb-1">
-                      Estoque <span className="text-slate-400">(opcional)</span>
-                    </p>
+                  <div className="min-w-0 space-y-2">
+                    <label
+                      htmlFor="cadastro-rapido-estoque"
+                      className="block text-sm font-medium text-slate-600"
+                    >
+                      Estoque
+                    </label>
                     <Input
+                      id="cadastro-rapido-estoque"
+                      aria-describedby="cadastro-rapido-estoque-ajuda"
                       type="number"
                       min="0"
                       value={regEstoque}
                       onChange={(e) => setRegEstoque(Math.max(0, parseInt(e.target.value) || 0))}
                       className="text-right"
                     />
+                    <p id="cadastro-rapido-estoque-ajuda" className="text-sm text-slate-500">
+                      Opcional
+                    </p>
                   </div>
                 </div>
               </div>
-              <Button
-                onClick={registrarEAdicionar}
-                disabled={registrando || !regNome.trim() || regPreco <= 0}
-                size="sm"
-              >
+              <Button onClick={registrarEAdicionar} disabled={registrando} size="sm">
                 {registrando ? 'Cadastrando...' : 'Cadastrar e adicionar'}
               </Button>
             </div>

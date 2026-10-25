@@ -10,7 +10,7 @@ export function registrarVenda(dados: NovaVenda): Venda {
   const registrar = db.transaction(() => {
     const venda = db
       .prepare(
-        'INSERT INTO vendas (data, total, desconto, forma_pagamento, created_at) VALUES (?, ?, ?, ?, datetime(\'now\', \'localtime\'))'
+        "INSERT INTO vendas (data, total, desconto, forma_pagamento, created_at) VALUES (?, ?, ?, ?, datetime('now', 'localtime'))"
       )
       .run(dados.data, total, desconto, dados.forma_pagamento)
 
@@ -19,11 +19,21 @@ export function registrarVenda(dados: NovaVenda): Venda {
     const stmtItem = db.prepare(
       'INSERT INTO itens_venda (venda_id, produto_id, nome_produto, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?)'
     )
-    const stmtEstoque = db.prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ?')
+    const stmtEstoque = db.prepare(
+      'UPDATE produtos SET estoque = estoque - ? WHERE id = ? AND estoque >= ?'
+    )
 
     for (const item of dados.itens) {
-      stmtItem.run(vendaId, item.produto_id, item.nome_produto, item.quantidade, item.preco_unitario)
-      stmtEstoque.run(item.quantidade, item.produto_id)
+      stmtItem.run(
+        vendaId,
+        item.produto_id,
+        item.nome_produto,
+        item.quantidade,
+        item.preco_unitario
+      )
+      if (stmtEstoque.run(item.quantidade, item.produto_id, item.quantidade).changes !== 1) {
+        throw new Error('Estoque insuficiente. Confira as quantidades dos itens.')
+      }
     }
 
     return db.prepare('SELECT * FROM vendas WHERE id = ?').get(vendaId) as Venda
@@ -44,7 +54,8 @@ export function listarVendasPorData(data: string): Venda[] {
 
 export function resumoDia(data: string): ResumoDia {
   const row = getDb()
-    .prepare(`
+    .prepare(
+      `
       SELECT
         COALESCE(SUM(total), 0) as total,
         COALESCE(SUM(CASE WHEN forma_pagamento = 'pix' THEN total ELSE 0 END), 0) as total_pix,
@@ -53,7 +64,8 @@ export function resumoDia(data: string): ResumoDia {
         COALESCE(SUM(CASE WHEN forma_pagamento = 'debito' THEN total ELSE 0 END), 0) as total_debito,
         COUNT(*) as quantidade_vendas
       FROM vendas WHERE data = ?
-    `)
+    `
+    )
     .get(data)
 
   return row as ResumoDia
@@ -64,10 +76,14 @@ export function atualizarVenda(
   dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }
 ): Venda {
   const db = getDb()
-  const vendaAtual = db.prepare('SELECT * FROM vendas WHERE id = ?').get(id) as Venda
+  const vendaAtual = db.prepare('SELECT * FROM vendas WHERE id = ?').get(id) as Venda & {
+    importada: number
+  }
   if (!vendaAtual) throw new Error('Venda não encontrada')
 
-  const itensAtuais = db.prepare('SELECT * FROM itens_venda WHERE venda_id = ?').all(id) as ItemVenda[]
+  const itensAtuais = db
+    .prepare('SELECT * FROM itens_venda WHERE venda_id = ?')
+    .all(id) as ItemVenda[]
 
   const subtotal = dados.itens.reduce((s, i) => s + i.preco_unitario * i.quantidade, 0)
   const desconto = Math.min(dados.desconto, subtotal)
@@ -77,7 +93,7 @@ export function atualizarVenda(
     // Restaura estoque dos itens antigos
     const stmtRestaurar = db.prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ?')
     for (const item of itensAtuais) {
-      stmtRestaurar.run(item.quantidade, item.produto_id)
+      if (!vendaAtual.importada) stmtRestaurar.run(item.quantidade, item.produto_id)
     }
 
     // Remove itens antigos
@@ -87,11 +103,18 @@ export function atualizarVenda(
     const stmtItem = db.prepare(
       'INSERT INTO itens_venda (venda_id, produto_id, nome_produto, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?)'
     )
-    const stmtDebitar = db.prepare('UPDATE produtos SET estoque = estoque - ? WHERE id = ?')
+    const stmtDebitar = db.prepare(
+      'UPDATE produtos SET estoque = estoque - ? WHERE id = ? AND estoque >= ?'
+    )
 
     for (const item of dados.itens) {
       stmtItem.run(id, item.produto_id, item.nome_produto, item.quantidade, item.preco_unitario)
-      stmtDebitar.run(item.quantidade, item.produto_id)
+      if (
+        !vendaAtual.importada &&
+        stmtDebitar.run(item.quantidade, item.produto_id, item.quantidade).changes !== 1
+      ) {
+        throw new Error('Estoque insuficiente. Confira as quantidades dos itens.')
+      }
     }
 
     // Atualiza venda
@@ -110,12 +133,15 @@ export function atualizarVenda(
 
 export function excluirVenda(id: number): void {
   const db = getDb()
+  const vendaAtual = db.prepare('SELECT importada FROM vendas WHERE id = ?').get(id) as
+    { importada: number } | undefined
+  if (!vendaAtual) throw new Error('Venda não encontrada')
   const itens = db.prepare('SELECT * FROM itens_venda WHERE venda_id = ?').all(id) as ItemVenda[]
 
   const excluir = db.transaction(() => {
     const stmtRestaurar = db.prepare('UPDATE produtos SET estoque = estoque + ? WHERE id = ?')
     for (const item of itens) {
-      stmtRestaurar.run(item.quantidade, item.produto_id)
+      if (!vendaAtual.importada) stmtRestaurar.run(item.quantidade, item.produto_id)
     }
     db.prepare('DELETE FROM itens_venda WHERE venda_id = ?').run(id)
     db.prepare('DELETE FROM vendas WHERE id = ?').run(id)

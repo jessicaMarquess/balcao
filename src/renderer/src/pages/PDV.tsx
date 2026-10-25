@@ -25,7 +25,20 @@ const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary' | 'war
 
 function formatarDataPT(iso: string): string {
   const [year, month, day] = iso.split('-')
-  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+  const meses = [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro'
+  ]
   return `Dia ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`
 }
 
@@ -58,19 +71,50 @@ export default function PDV(): React.JSX.Element {
     setVendas(lista)
     setSaldoInicial(saldo)
     setTotalPix(lista.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0))
-    setTotalCartao(lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0))
-    setTotalDinheiro(lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0))
-    setTotalDebito(lista.filter((v) => v.forma_pagamento === 'debito').reduce((s, v) => s + v.total, 0))
+    setTotalCartao(
+      lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0)
+    )
+    setTotalDinheiro(
+      lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0)
+    )
+    setTotalDebito(
+      lista.filter((v) => v.forma_pagamento === 'debito').reduce((s, v) => s + v.total, 0)
+    )
   }, [hoje])
 
-  useEffect(() => { carregar() }, [carregar])
+  useEffect(() => {
+    let ativo = true
+    Promise.all([window.api.vendas.listar(hoje), window.api.dia.getSaldo(hoje)]).then(
+      ([lista, saldo]) => {
+        if (!ativo) return
+        setVendas(lista)
+        setSaldoInicial(saldo)
+        setTotalPix(
+          lista.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0)
+        )
+        setTotalCartao(
+          lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0)
+        )
+        setTotalDinheiro(
+          lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0)
+        )
+        setTotalDebito(
+          lista.filter((v) => v.forma_pagamento === 'debito').reduce((s, v) => s + v.total, 0)
+        )
+      }
+    )
+    return () => {
+      ativo = false
+    }
+  }, [hoje])
 
   function alternarFiltro(f: Filtro): void {
     setFiltro((prev) => (prev === f ? 'todos' : f))
   }
 
   const totalGeral = totalDinheiro + totalPix + totalCartao + totalDebito
-  const vendasFiltradas = filtro === 'todos' ? vendas : vendas.filter((v) => v.forma_pagamento === filtro)
+  const vendasFiltradas =
+    filtro === 'todos' ? vendas : vendas.filter((v) => v.forma_pagamento === filtro)
 
   const cards: {
     id: Filtro
@@ -162,13 +206,17 @@ export default function PDV(): React.JSX.Element {
                   : 'opacity-85 hover:opacity-100 hover:shadow-sm'
               }`}
             >
-              <p className={`text-xs font-semibold mb-1 uppercase tracking-wide ${estilo.label}`}>{label}</p>
+              <p className={`text-xs font-semibold mb-1 uppercase tracking-wide ${estilo.label}`}>
+                {label}
+              </p>
               <p className={`text-xl font-bold ${estilo.valor}`}>{formatCurrency(valor)}</p>
             </button>
           )
         })}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shrink-0 w-40">
-          <p className="text-xs font-semibold mb-1 uppercase tracking-wide text-slate-400">Saldo inicial</p>
+          <p className="text-xs font-semibold mb-1 uppercase tracking-wide text-slate-400">
+            Saldo inicial
+          </p>
           <p className="text-xl font-bold text-slate-700">{formatCurrency(saldoInicial)}</p>
         </div>
       </div>
@@ -187,7 +235,7 @@ export default function PDV(): React.JSX.Element {
             {vendas.length === 0 ? (
               <>
                 <p className="font-medium">Nenhuma venda hoje ainda</p>
-                <p className="text-sm mt-1">Clique em "+ Venda" para registrar</p>
+                <p className="text-sm mt-1">Clique em &quot;+ Venda&quot; para registrar</p>
               </>
             ) : (
               <p>Nenhuma venda com {LABEL_PAGAMENTO[filtro]} hoje</p>
@@ -243,7 +291,10 @@ export default function PDV(): React.JSX.Element {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={(e) => { e.stopPropagation(); setVendaSelecionada(venda) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setVendaSelecionada(venda)
+                  }}
                   className="shrink-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50"
                 >
                   <Pencil className="h-4 w-4" />

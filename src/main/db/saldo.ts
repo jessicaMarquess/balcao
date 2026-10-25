@@ -2,8 +2,7 @@ import { getDb } from './index'
 
 export function getSaldoDia(data: string): number {
   const row = getDb().prepare('SELECT valor FROM saldo_diario WHERE data = ?').get(data) as
-    | { valor: number }
-    | undefined
+    { valor: number } | undefined
   return row?.valor ?? 0
 }
 
