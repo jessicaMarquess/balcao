@@ -163,11 +163,11 @@ export default function VendaModal({
         <div className="flex flex-col gap-4 mt-2">
           {/* Autocomplete ou Cadastro rápido */}
           {modoRegistro ? (
-            <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-4 flex flex-col gap-3">
+            <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <PackagePlus className="h-4 w-4 text-violet-600" />
-                  <span className="text-sm font-semibold text-violet-700">Cadastrar produto</span>
+                  <PackagePlus className="h-4 w-4 text-brand-600" />
+                  <span className="text-sm font-semibold text-brand-700">Cadastrar produto</span>
                 </div>
                 <button
                   onClick={fecharModoRegistro}
@@ -222,24 +222,24 @@ export default function VendaModal({
                 autoFocus
               />
               {resultados.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full rounded-xl border border-violet-100 bg-white shadow-lg">
+                <div className="absolute z-10 mt-1 w-full rounded-xl border border-brand-100 bg-white shadow-lg">
                   {resultados.map((p) => (
                     <button
                       key={p.id}
                       disabled={p.estoque === 0}
                       onClick={() => adicionarProduto(p)}
-                      className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-violet-50 disabled:opacity-40 disabled:cursor-not-allowed first:rounded-t-xl last:rounded-b-xl"
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed first:rounded-t-xl last:rounded-b-xl"
                     >
                       <span className="font-medium text-slate-700">{p.nome}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-slate-400">{p.estoque} un.</span>
-                        <span className="font-bold text-violet-600">{formatCurrency(p.preco)}</span>
+                        <span className="font-bold text-brand-600">{formatCurrency(p.preco)}</span>
                       </div>
                     </button>
                   ))}
                   <button
                     onClick={abrirModoRegistro}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-violet-600 hover:bg-violet-50 border-t border-violet-100 rounded-b-xl"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-brand-600 hover:bg-brand-50 border-t border-brand-100 rounded-b-xl"
                   >
                     <PackagePlus className="h-3.5 w-3.5" />
                     <span>Cadastrar novo produto</span>
@@ -247,13 +247,13 @@ export default function VendaModal({
                 </div>
               )}
               {semResultados && (
-                <div className="absolute z-10 mt-1 w-full rounded-xl border border-violet-100 bg-white shadow-lg">
+                <div className="absolute z-10 mt-1 w-full rounded-xl border border-brand-100 bg-white shadow-lg">
                   <div className="px-3 py-2.5 text-sm text-slate-400">
                     Nenhum produto encontrado
                   </div>
                   <button
                     onClick={abrirModoRegistro}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-violet-600 hover:bg-violet-50 border-t border-violet-100 rounded-b-xl"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-brand-600 hover:bg-brand-50 border-t border-brand-100 rounded-b-xl"
                   >
                     <PackagePlus className="h-3.5 w-3.5" />
                     <span>
@@ -334,8 +334,8 @@ export default function VendaModal({
                     onClick={() => setFormaPagamento(value)}
                     className={`flex-1 rounded-xl border py-2 text-sm font-semibold transition-all duration-150 ${
                       formaPagamento === value
-                        ? 'border-violet-600 bg-linear-to-br from-violet-600 to-purple-700 text-white shadow-sm'
-                        : 'border-violet-200 bg-white text-slate-600 hover:border-violet-400 hover:bg-violet-50'
+                        ? 'border-brand-600 bg-linear-to-br from-brand-600 to-brand-alt-700 text-white shadow-sm'
+                        : 'border-brand-200 bg-white text-slate-600 hover:border-brand-400 hover:bg-brand-50'
                     }`}
                   >
                     {label}

@@ -1,6 +1,6 @@
 {
   "name": "balcao",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PDV desktop para loja de eletrônicos",
   "main": "./out/main/index.js",
   "author": "Jessica Marques",
@@ -17,8 +17,9 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "test:backup": "tsc src/main/db/preparacao.ts --target es2022 --module commonjs --esModuleInterop --skipLibCheck --outDir out/tests && node scripts/test-backup.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

@@ -1,3 +1,5 @@
+import SeletorTema from '@renderer/components/SeletorTema'
+import { useTema } from '@renderer/tema/tema'
 import { Button } from '@renderer/components/ui/button'
 import { InputMoeda } from '@renderer/components/ui/input-moeda'
 import { formatCurrency, hojeISO } from '@renderer/lib/utils'
@@ -22,6 +24,7 @@ const MENSAGENS_DIA: Record<number, string> = {
 }
 
 export default function Inicio(): React.JSX.Element {
+  const { identidade } = useTema()
   const navigate = useNavigate()
   const hoje = hojeISO()
   const [saldo, setSaldo] = useState(0)
@@ -45,23 +48,23 @@ export default function Inicio(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#0a0614] overflow-hidden relative">
-      {/* Glow de fundo */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-150 h-150 rounded-full bg-violet-700/20 blur-[120px]" />
-      </div>
-      <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-purple-600/10 blur-[100px] pointer-events-none" />
-
-      <div className="relative flex flex-col items-center gap-8 text-center">
-        {/* Logo */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-violet-500 to-purple-700 shadow-lg shadow-violet-900/50 flex items-center justify-center mb-2">
-            <span className="text-white font-bold text-lg">JC</span>
+    <div className="brand-welcome flex min-h-screen items-center justify-center overflow-y-auto px-6 py-10 relative">
+      <div className="brand-stripes absolute inset-x-0 top-0 h-3" aria-hidden="true" />
+      <div className="relative flex w-full max-w-md flex-col items-center gap-7 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="brand-stripes flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-white shadow-md mb-2"
+            aria-hidden="true"
+          >
+            <span className="rounded-lg bg-brand-950 px-2 py-1 text-white font-black text-2xl">
+              JC
+            </span>
           </div>
-          <p className="text-2xl font-bold text-white tracking-tight">
-            {saudacao()}, Cleide e Jander!
-          </p>
-          <p className="text-sm text-white/50 mt-0.5 max-w-xs leading-relaxed">
+          <p className="text-sm font-semibold text-brand-700">{identidade.titulo}</p>
+          <h1 className="text-3xl font-bold text-brand-950 tracking-tight">
+            {saudacao()}, {identidade.pessoa}!
+          </h1>
+          <p className="text-base text-slate-600 mt-1 max-w-sm leading-relaxed">
             {jaIniciado === null ? 'Carregando...' : MENSAGENS_DIA[new Date().getDay()]}
           </p>
         </div>
@@ -69,25 +72,25 @@ export default function Inicio(): React.JSX.Element {
         {/* Card */}
         {jaIniciado === null ? null : jaIniciado ? (
           /* Dia já iniciado */
-          <div className="flex flex-col items-center gap-4 w-64 bg-white/5 border border-white/10 rounded-2xl px-6 py-6 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 w-full max-w-sm bg-white border border-brand-200 rounded-2xl px-7 py-7 shadow-sm">
             {saldoAtual > 0 && (
               <div className="text-center">
-                <p className="text-xs text-white/40 mb-1">Saldo inicial de hoje</p>
-                <p className="text-xl font-bold text-violet-300">{formatCurrency(saldoAtual)}</p>
+                <p className="text-xs text-slate-600 mb-1">Saldo inicial de hoje</p>
+                <p className="text-xl font-bold text-brand-800">{formatCurrency(saldoAtual)}</p>
               </div>
             )}
             <Button onClick={() => navigate('/dia')} size="lg" className="w-full">
-              Continuar com o dia
+              Ir para o caixa
             </Button>
           </div>
         ) : (
           /* Novo dia — pede saldo */
-          <div className="flex flex-col items-center gap-3 w-64 bg-white/5 border border-white/10 rounded-2xl px-6 py-6 backdrop-blur-sm">
-            <label className="text-sm text-white/60 font-medium">Saldo inicial do caixa</label>
+          <div className="flex flex-col items-center gap-3 w-full max-w-sm bg-white border border-brand-200 rounded-2xl px-7 py-7 shadow-sm">
+            <label className="text-sm text-slate-700 font-medium">Saldo inicial do caixa</label>
             <InputMoeda
               value={saldo}
               onChange={setSaldo}
-              className="text-center bg-white/10 border-white/20 text-white focus-visible:ring-violet-500 focus-visible:border-violet-400 text-lg font-semibold"
+              className="text-center bg-white border-brand-300 text-brand-950 focus-visible:ring-brand-500 focus-visible:border-brand-400 text-lg font-semibold"
               autoFocus
             />
             <Button onClick={iniciar} disabled={salvando} size="lg" className="w-full mt-1">
@@ -95,6 +98,10 @@ export default function Inicio(): React.JSX.Element {
             </Button>
           </div>
         )}
+        <div className="w-full max-w-sm">
+          <SeletorTema />
+        </div>
+        <p className="text-sm text-brand-700">{identidade.mensagem}</p>
       </div>
     </div>
   )

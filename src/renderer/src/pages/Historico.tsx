@@ -1,3 +1,4 @@
+import ListaPaginada from '@renderer/components/ListaPaginada'
 import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronRight, Download } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
@@ -47,8 +48,12 @@ function agruparPorDia(vendas: Venda[]): GrupoDia[] {
       vendas,
       total: vendas.reduce((s, v) => s + v.total, 0),
       totalPix: vendas.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0),
-      totalCartao: vendas.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0),
-      totalDinheiro: vendas.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0)
+      totalCartao: vendas
+        .filter((v) => v.forma_pagamento === 'cartao')
+        .reduce((s, v) => s + v.total, 0),
+      totalDinheiro: vendas
+        .filter((v) => v.forma_pagamento === 'dinheiro')
+        .reduce((s, v) => s + v.total, 0)
     }))
 }
 
@@ -62,13 +67,14 @@ export default function Historico(): React.JSX.Element {
   const [exportando, setExportando] = useState(false)
 
   useEffect(() => {
-    carregarVendas()
+    let ativo = true
+    window.api.vendas.listarPeriodo(dataInicio, dataFim).then((lista) => {
+      if (ativo) setGrupos(agruparPorDia(lista))
+    })
+    return () => {
+      ativo = false
+    }
   }, [dataInicio, dataFim])
-
-  async function carregarVendas(): Promise<void> {
-    const lista = await window.api.vendas.listarPeriodo(dataInicio, dataFim)
-    setGrupos(agruparPorDia(lista))
-  }
 
   function toggleDia(data: string): void {
     setDiasAbertos((prev) => {
@@ -135,9 +141,13 @@ export default function Historico(): React.JSX.Element {
       {/* Resumo geral do período */}
       {grupos.length > 0 && (
         <div className="flex gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200 text-sm">
-          <span className="text-slate-500">{grupos.length} dia{grupos.length !== 1 ? 's' : ''}</span>
+          <span className="text-slate-500">
+            {grupos.length} dia{grupos.length !== 1 ? 's' : ''}
+          </span>
           <span className="text-slate-300">|</span>
-          <span className="text-slate-500">{totalVendas} venda{totalVendas !== 1 ? 's' : ''}</span>
+          <span className="text-slate-500">
+            {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
+          </span>
           <span className="text-slate-300">|</span>
           <span className="font-semibold text-slate-800">{formatCurrency(totalGeral)}</span>
         </div>
@@ -150,110 +160,166 @@ export default function Historico(): React.JSX.Element {
             <p>Nenhuma venda neste período</p>
           </div>
         ) : (
-          grupos.map((grupo) => {
-            const diaAberto = diasAbertos.has(grupo.data)
-            return (
-              <div key={grupo.data} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-                {/* Cabeçalho do dia */}
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
-                  onClick={() => toggleDia(grupo.data)}
-                >
-                  {diaAberto ? (
-                    <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
-                  )}
-                  <span className="font-semibold text-slate-800 w-32 text-left">
-                    {formatDate(grupo.data)}
-                    {grupo.data === hoje && (
-                      <span className="ml-2 text-xs font-normal text-blue-500">hoje</span>
-                    )}
-                  </span>
-                  <span className="text-sm text-slate-400 flex-1 text-left">
-                    {grupo.vendas.length} venda{grupo.vendas.length !== 1 ? 's' : ''}
-                  </span>
-                  <div className="flex items-center gap-3 text-sm">
-                    {grupo.totalDinheiro > 0 && (
-                      <span className="text-green-600">Din. {formatCurrency(grupo.totalDinheiro)}</span>
-                    )}
-                    {grupo.totalPix > 0 && (
-                      <span className="text-blue-600">PIX {formatCurrency(grupo.totalPix)}</span>
-                    )}
-                    {grupo.totalCartao > 0 && (
-                      <span className="text-purple-600">Cart. {formatCurrency(grupo.totalCartao)}</span>
-                    )}
-                    <span className="font-bold text-slate-800 w-28 text-right">
-                      {formatCurrency(grupo.total)}
-                    </span>
-                  </div>
-                </button>
-
-                {/* Vendas do dia */}
-                {diaAberto && (
-                  <div className="border-t border-slate-100 flex flex-col divide-y divide-slate-100">
-                    {grupo.vendas.map((venda) => {
-                      const vendaAberta = vendasAbertas.has(venda.id)
-                      return (
-                        <div key={venda.id}>
-                          <button
-                            className="flex w-full items-center gap-3 px-8 py-2.5 hover:bg-slate-50 transition-colors text-sm"
-                            onClick={() => toggleVenda(venda.id)}
-                          >
-                            {vendaAberta ? (
-                              <ChevronDown className="h-3.5 w-3.5 text-slate-300 shrink-0" />
-                            ) : (
-                              <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
-                            )}
-                            <span className="text-slate-400 w-16 text-left">#{venda.id}</span>
-                            <span className="text-slate-500 flex-1 text-left">
-                              {new Date(venda.created_at).toLocaleTimeString('pt-BR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                            <Badge variant={BADGE_PAGAMENTO[venda.forma_pagamento]}>
-                              {LABEL_PAGAMENTO[venda.forma_pagamento]}
-                            </Badge>
-                            <span className="font-semibold text-slate-800 w-28 text-right">
-                              {formatCurrency(venda.total)}
-                            </span>
-                          </button>
-
-                          {vendaAberta && venda.itens && (
-                            <div className="px-16 pb-3 bg-slate-50">
-                              <table className="w-full text-xs">
-                                <thead>
-                                  <tr className="text-left text-slate-400">
-                                    <th className="pb-1.5 font-medium">Produto</th>
-                                    <th className="pb-1.5 font-medium text-right">Qtd</th>
-                                    <th className="pb-1.5 font-medium text-right">Unit.</th>
-                                    <th className="pb-1.5 font-medium text-right">Subtotal</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                  {venda.itens.map((item, i) => (
-                                    <tr key={i}>
-                                      <td className="py-1 text-slate-600">{item.nome_produto}</td>
-                                      <td className="py-1 text-right text-slate-500">{item.quantidade}</td>
-                                      <td className="py-1 text-right text-slate-500">{formatCurrency(item.preco_unitario)}</td>
-                                      <td className="py-1 text-right font-medium text-slate-700">
-                                        {formatCurrency(item.quantidade * item.preco_unitario)}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
+          <ListaPaginada
+            itens={grupos}
+            rotulo="Dias do histórico"
+            tamanho={10}
+            key={`${dataInicio}:${dataFim}`}
+          >
+            {(pagina) => (
+              <>
+                {pagina.map((grupo) => {
+                  const diaAberto = diasAbertos.has(grupo.data)
+                  return (
+                    <div
+                      key={grupo.data}
+                      className="rounded-lg border border-slate-200 bg-white overflow-hidden"
+                    >
+                      {/* Cabeçalho do dia */}
+                      <button
+                        className="flex w-full items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+                        onClick={() => toggleDia(grupo.data)}
+                      >
+                        {diaAberto ? (
+                          <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+                        )}
+                        <span className="font-semibold text-slate-800 w-32 text-left">
+                          {formatDate(grupo.data)}
+                          {grupo.data === hoje && (
+                            <span className="ml-2 text-xs font-normal text-brand-alt-500">hoje</span>
                           )}
+                        </span>
+                        <span className="text-sm text-slate-400 flex-1 text-left">
+                          {grupo.vendas.length} venda{grupo.vendas.length !== 1 ? 's' : ''}
+                        </span>
+                        <div className="flex items-center gap-3 text-sm">
+                          {grupo.totalDinheiro > 0 && (
+                            <span className="text-green-600">
+                              Din. {formatCurrency(grupo.totalDinheiro)}
+                            </span>
+                          )}
+                          {grupo.totalPix > 0 && (
+                            <span className="text-brand-alt-600">
+                              PIX {formatCurrency(grupo.totalPix)}
+                            </span>
+                          )}
+                          {grupo.totalCartao > 0 && (
+                            <span className="text-brand-alt-600">
+                              Cart. {formatCurrency(grupo.totalCartao)}
+                            </span>
+                          )}
+                          <span className="font-bold text-slate-800 w-28 text-right">
+                            {formatCurrency(grupo.total)}
+                          </span>
                         </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })
+                      </button>
+
+                      {/* Vendas do dia */}
+                      {diaAberto && (
+                        <div className="border-t border-slate-100 flex flex-col divide-y divide-slate-100">
+                          {
+                            <ListaPaginada itens={grupo.vendas} rotulo="Vendas do dia" tamanho={10}>
+                              {(pagina) => (
+                                <>
+                                  {pagina.map((venda) => {
+                                    const vendaAberta = vendasAbertas.has(venda.id)
+                                    return (
+                                      <div key={venda.id}>
+                                        <button
+                                          className="flex w-full items-center gap-3 px-8 py-2.5 hover:bg-slate-50 transition-colors text-sm"
+                                          onClick={() => toggleVenda(venda.id)}
+                                        >
+                                          {vendaAberta ? (
+                                            <ChevronDown className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+                                          ) : (
+                                            <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+                                          )}
+                                          <span className="text-slate-400 w-16 text-left">
+                                            #{venda.id}
+                                          </span>
+                                          <span className="text-slate-500 flex-1 text-left">
+                                            {new Date(venda.created_at).toLocaleTimeString(
+                                              'pt-BR',
+                                              {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                              }
+                                            )}
+                                          </span>
+                                          <Badge variant={BADGE_PAGAMENTO[venda.forma_pagamento]}>
+                                            {LABEL_PAGAMENTO[venda.forma_pagamento]}
+                                          </Badge>
+                                          <span className="font-semibold text-slate-800 w-28 text-right">
+                                            {formatCurrency(venda.total)}
+                                          </span>
+                                        </button>
+
+                                        {vendaAberta && venda.itens && (
+                                          <div className="px-16 pb-3 bg-slate-50">
+                                            <ListaPaginada
+                                              itens={venda.itens}
+                                              rotulo={`Itens da venda #${venda.id}`}
+                                            >
+                                              {(itens) => (
+                                                <table className="w-full text-xs">
+                                                  <thead>
+                                                    <tr className="text-left text-slate-400">
+                                                      <th className="pb-1.5 font-medium">
+                                                        Produto
+                                                      </th>
+                                                      <th className="pb-1.5 font-medium text-right">
+                                                        Qtd
+                                                      </th>
+                                                      <th className="pb-1.5 font-medium text-right">
+                                                        Unit.
+                                                      </th>
+                                                      <th className="pb-1.5 font-medium text-right">
+                                                        Subtotal
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-slate-100">
+                                                    {itens.map((item, i) => (
+                                                      <tr key={i}>
+                                                        <td className="py-1 text-slate-600">
+                                                          {item.nome_produto}
+                                                        </td>
+                                                        <td className="py-1 text-right text-slate-500">
+                                                          {item.quantidade}
+                                                        </td>
+                                                        <td className="py-1 text-right text-slate-500">
+                                                          {formatCurrency(item.preco_unitario)}
+                                                        </td>
+                                                        <td className="py-1 text-right font-medium text-slate-700">
+                                                          {formatCurrency(
+                                                            item.quantidade * item.preco_unitario
+                                                          )}
+                                                        </td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              )}
+                                            </ListaPaginada>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </>
+                              )}
+                            </ListaPaginada>
+                          }
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </>
+            )}
+          </ListaPaginada>
         )}
       </div>
     </div>

@@ -1,5 +1,8 @@
+import { version } from '../../../../package.json'
+import SeletorTema from './SeletorTema'
+import { useTema } from '@renderer/tema/tema'
 import { NavLink, Outlet } from 'react-router-dom'
-import { CalendarDays, Package, History, BarChart2, PieChart, ShoppingBasket } from 'lucide-react'
+import { CalendarDays, Package, History, BarChart2, ShoppingBasket } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 
 const navItems = [
@@ -7,20 +10,18 @@ const navItems = [
   { to: '/produtos', label: 'Produtos', icon: Package, end: false },
   { to: '/historico', label: 'Histórico', icon: History, end: false },
   { to: '/relatorio', label: 'Relatório', icon: BarChart2, end: false },
-  { to: '/estatisticas', label: 'Estatísticas', icon: PieChart, end: false },
   { to: '/lista-compras', label: 'Lista de compras', icon: ShoppingBasket, end: false }
 ]
 
 export default function Layout(): React.JSX.Element {
+  const { identidade } = useTema()
   return (
-    <div className="flex h-screen bg-violet-50/60">
-      <aside className="flex w-52 flex-col bg-[#120d24] text-white shrink-0">
+    <div className="flex h-screen bg-brand-50/60">
+      <aside className="flex w-56 flex-col bg-brand-950 border-r border-brand-900 text-white shrink-0">
         {/* Brand */}
-        <div className="flex h-16 flex-col justify-center px-5 border-b border-white/10">
-          <span className="text-sm font-bold tracking-tight bg-linear-to-r from-violet-300 to-purple-200 bg-clip-text text-transparent">
-            J&C Variedades
-          </span>
-          <span className="text-xs text-white/40 mt-0.5">Balcão</span>
+        <div className="relative flex h-24 flex-col justify-center px-5 border-b border-white/15 before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-brand-300">
+          <span className="text-lg font-bold tracking-tight text-white">{identidade.titulo}</span>
+          <span className="text-sm text-brand-200 mt-1">Balcão</span>
         </div>
 
         {/* Nav */}
@@ -34,8 +35,8 @@ export default function Layout(): React.JSX.Element {
                 cn(
                   'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-linear-to-r from-violet-600 to-purple-600 text-white shadow-sm shadow-violet-900/50'
-                    : 'text-white/50 hover:bg-white/8 hover:text-white/90'
+                    ? 'bg-brand-200 text-brand-950 shadow-sm'
+                    : 'text-brand-100/80 hover:bg-white/10 hover:text-white'
                 )
               }
             >
@@ -47,7 +48,12 @@ export default function Layout(): React.JSX.Element {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10">
-          <p className="text-xs text-white/25 text-center">v1.0</p>
+          <div className="mb-4">
+            <SeletorTema lateral />
+          </div>
+          <div className="brand-stripes h-1.5 rounded-full mb-3" aria-hidden="true" />
+          <p className="text-xs text-brand-200 text-center">{identidade.lema}</p>
+          <p className="text-xs text-brand-200/70 text-center mt-1">Balcão • v{version}</p>
         </div>
       </aside>
 

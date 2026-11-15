@@ -1,3 +1,4 @@
+import ListaPaginada from '@renderer/components/ListaPaginada'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, CheckCheck, Minus, PackageSearch, Loader2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
@@ -17,9 +18,9 @@ export default function ListaCompras(): React.JSX.Element {
 
   useEffect(() => {
     carregar()
-    window.api.produtos.listar().then((lista) =>
-      setSugestoes(lista.filter((p) => p.ativo && p.estoque <= ESTOQUE_BAIXO))
-    )
+    window.api.produtos
+      .listar()
+      .then((lista) => setSugestoes(lista.filter((p) => p.ativo && p.estoque <= ESTOQUE_BAIXO)))
   }, [])
 
   async function carregar(): Promise<void> {
@@ -102,7 +103,7 @@ export default function ListaCompras(): React.JSX.Element {
             size="sm"
             onClick={fecharLista}
             disabled={fechando || itens.length === 0}
-            className="bg-violet-600 hover:bg-violet-700 text-white"
+            className="bg-brand-600 hover:bg-brand-700 text-white"
           >
             {fechando ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -134,26 +135,40 @@ export default function ListaCompras(): React.JSX.Element {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {sugestoesPendentes.map((p) => {
-              const semInfo = p.estoque < 0
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => adicionar(p.nome, 1)}
-                  className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-violet-300 hover:bg-violet-50 transition-colors"
-                >
-                  <span>{p.nome}</span>
-                  {semInfo ? (
-                    <span className="text-xs text-slate-400 italic">sem informação</span>
-                  ) : p.estoque === 0 ? (
-                    <span className="text-xs font-semibold text-red-500">sem estoque</span>
-                  ) : (
-                    <span className="text-xs font-semibold text-amber-500">{p.estoque} un.</span>
-                  )}
-                  <Plus className="h-3 w-3 text-slate-400" />
-                </button>
-              )
-            })}
+            {
+              <ListaPaginada
+                itens={sugestoesPendentes}
+                rotulo="Sugestões de reposição"
+                tamanho={10}
+              >
+                {(pagina) => (
+                  <>
+                    {pagina.map((p) => {
+                      const semInfo = p.estoque < 0
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => adicionar(p.nome, 1)}
+                          className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-brand-300 hover:bg-brand-50 transition-colors"
+                        >
+                          <span>{p.nome}</span>
+                          {semInfo ? (
+                            <span className="text-xs text-slate-400 italic">sem informação</span>
+                          ) : p.estoque === 0 ? (
+                            <span className="text-xs font-semibold text-red-500">sem estoque</span>
+                          ) : (
+                            <span className="text-xs font-semibold text-amber-500">
+                              {p.estoque} un.
+                            </span>
+                          )}
+                          <Plus className="h-3 w-3 text-slate-400" />
+                        </button>
+                      )
+                    })}
+                  </>
+                )}
+              </ListaPaginada>
+            }
           </div>
         </div>
       )}
@@ -168,7 +183,7 @@ export default function ListaCompras(): React.JSX.Element {
           className="flex-1"
           autoFocus
         />
-        <div className="flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-2">
+        <div className="flex items-center gap-1 rounded-lg border border-brand-200 bg-white px-2">
           <button
             onClick={() => setNovaQtd((q) => Math.max(1, q - 1))}
             className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
@@ -203,44 +218,52 @@ export default function ListaCompras(): React.JSX.Element {
                 A comprar ({pendentes.length})
               </p>
               <div className="flex flex-col gap-1">
-                {pendentes.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => toggle(item.id)}
-                      className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-violet-600"
-                    />
-                    <span className="flex-1 text-sm text-slate-700">{item.nome}</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => alterarQuantidade(item, -1)}
-                        disabled={item.quantidade <= 1}
-                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50 disabled:opacity-30"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-semibold text-slate-700">
-                        {item.quantidade}
-                      </span>
-                      <button
-                        onClick={() => alterarQuantidade(item, 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-400 hover:bg-violet-50"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => deletar(item.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                {
+                  <ListaPaginada itens={pendentes} rotulo="Itens a comprar" tamanho={10}>
+                    {(pagina) => (
+                      <>
+                        {pagina.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={false}
+                              onChange={() => toggle(item.id)}
+                              className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-brand-600"
+                            />
+                            <span className="flex-1 text-sm text-slate-700">{item.nome}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => alterarQuantidade(item, -1)}
+                                disabled={item.quantidade <= 1}
+                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-400 hover:bg-brand-50 disabled:opacity-30"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <span className="w-8 text-center text-sm font-semibold text-slate-700">
+                                {item.quantidade}
+                              </span>
+                              <button
+                                onClick={() => alterarQuantidade(item, 1)}
+                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-400 hover:bg-brand-50"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => deletar(item.id)}
+                              className="text-slate-300 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </ListaPaginada>
+                }
               </div>
             </div>
           )}
@@ -252,27 +275,39 @@ export default function ListaCompras(): React.JSX.Element {
                 Comprado ({concluidos.length})
               </p>
               <div className="flex flex-col gap-1">
-                {concluidos.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 opacity-60"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={true}
-                      onChange={() => toggle(item.id)}
-                      className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-violet-600"
-                    />
-                    <span className="flex-1 text-sm text-slate-500 line-through">{item.nome}</span>
-                    <span className="text-xs text-slate-400 font-medium">{item.quantidade}×</span>
-                    <button
-                      onClick={() => deletar(item.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                {
+                  <ListaPaginada itens={concluidos} rotulo="Itens comprados" tamanho={10}>
+                    {(pagina) => (
+                      <>
+                        {pagina.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 opacity-60"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={true}
+                              onChange={() => toggle(item.id)}
+                              className="h-4 w-4 rounded border-slate-300 cursor-pointer accent-brand-600"
+                            />
+                            <span className="flex-1 text-sm text-slate-500 line-through">
+                              {item.nome}
+                            </span>
+                            <span className="text-xs text-slate-400 font-medium">
+                              {item.quantidade}×
+                            </span>
+                            <button
+                              onClick={() => deletar(item.id)}
+                              className="text-slate-300 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </ListaPaginada>
+                }
               </div>
             </div>
           )}

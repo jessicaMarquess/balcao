@@ -1,13 +1,89 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* Tokens de identidade compartilhados pelos dois temas do mesmo aplicativo. */
+@theme inline {
+  --color-brand-50: var(--loja-50);
+  --color-brand-alt-50: var(--loja-alt-50);
+  --color-brand-100: var(--loja-100);
+  --color-brand-alt-100: var(--loja-alt-100);
+  --color-brand-200: var(--loja-200);
+  --color-brand-alt-200: var(--loja-alt-200);
+  --color-brand-300: var(--loja-300);
+  --color-brand-alt-300: var(--loja-alt-300);
+  --color-brand-400: var(--loja-400);
+  --color-brand-alt-400: var(--loja-alt-400);
+  --color-brand-500: var(--loja-500);
+  --color-brand-alt-500: var(--loja-alt-500);
+  --color-brand-600: var(--loja-600);
+  --color-brand-alt-600: var(--loja-alt-600);
+  --color-brand-700: var(--loja-700);
+  --color-brand-alt-700: var(--loja-alt-700);
+  --color-brand-800: var(--loja-800);
+  --color-brand-alt-800: var(--loja-alt-800);
+  --color-brand-900: var(--loja-900);
+  --color-brand-alt-900: var(--loja-alt-900);
+  --color-brand-950: var(--loja-950);
+  --color-brand-alt-950: var(--loja-alt-950);
+}
 
 :root {
-  --background: 0 0% 100%;
+  --loja-50: #faf5ff;
+  --loja-alt-50: #faf5ff;
+  --loja-100: #f3e8ff;
+  --loja-alt-100: #f3e8ff;
+  --loja-200: #e9d5ff;
+  --loja-alt-200: #e9d5ff;
+  --loja-300: #d8b4fe;
+  --loja-alt-300: #d8b4fe;
+  --loja-400: #c084fc;
+  --loja-alt-400: #c084fc;
+  --loja-500: #9333ea;
+  --loja-alt-500: #a855f7;
+  --loja-600: #7e22ce;
+  --loja-alt-600: #9333ea;
+  --loja-700: #6b21a8;
+  --loja-alt-700: #7e22ce;
+  --loja-800: #581c87;
+  --loja-alt-800: #6b21a8;
+  --loja-900: #3b1764;
+  --loja-alt-900: #581c87;
+  --loja-950: #120d24;
+  --loja-alt-950: #3b0764;
+}
+
+:root[data-tema='paysandu'] {
+  --loja-50: #f0f9ff;
+  --loja-alt-50: #eff6ff;
+  --loja-100: #dff3ff;
+  --loja-alt-100: #dbeafe;
+  --loja-200: #b8e5fc;
+  --loja-alt-200: #bfdbfe;
+  --loja-300: #7dd3f5;
+  --loja-alt-300: #93c5fd;
+  --loja-400: #38b5e8;
+  --loja-alt-400: #60a5fa;
+  --loja-500: #0784b8;
+  --loja-alt-500: #3b82f6;
+  --loja-600: #036b99;
+  --loja-alt-600: #2563eb;
+  --loja-700: #07577d;
+  --loja-alt-700: #1d4ed8;
+  --loja-800: #0b4665;
+  --loja-alt-800: #1e40af;
+  --loja-900: #103953;
+  --loja-alt-900: #1e3a8a;
+  --loja-950: #082b43;
+  --loja-alt-950: #172554;
+}
+
+:root {
+  --background: 270 100% 98%;
   --foreground: 263 50% 6%;
   --card: 0 0% 100%;
   --card-foreground: 263 50% 6%;
   --popover: 0 0% 100%;
   --popover-foreground: 263 50% 6%;
-  --primary: 262 83% 58%;
+  --primary: 271 81% 56%;
   --primary-foreground: 0 0% 100%;
   --secondary: 270 25% 96%;
   --secondary-foreground: 263 50% 20%;
@@ -19,8 +95,25 @@
   --destructive-foreground: 0 0% 100%;
   --border: 263 18% 90%;
   --input: 263 18% 90%;
-  --ring: 262 83% 58%;
+  --ring: 271 81% 56%;
   --radius: 0.625rem;
+}
+
+:root[data-tema='paysandu'] {
+  --background: 200 100% 98%;
+  --foreground: 205 65% 15%;
+  --card-foreground: 205 65% 15%;
+  --popover-foreground: 205 65% 15%;
+  --primary: 198 96% 31%;
+  --secondary: 200 100% 94%;
+  --secondary-foreground: 203 76% 26%;
+  --muted: 200 40% 96%;
+  --muted-foreground: 205 20% 42%;
+  --accent: 200 100% 94%;
+  --accent-foreground: 203 76% 26%;
+  --border: 200 55% 88%;
+  --input: 200 55% 88%;
+  --ring: 198 96% 31%;
 }
 
 * {
@@ -29,9 +122,12 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: #f7f5ff;
-  color: #0e0920;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: var(--loja-50);
+  color: var(--loja-950);
 }
 
 ::-webkit-scrollbar {
@@ -41,7 +137,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c4b5fd;
+  background: var(--loja-300);
   border-radius: 99px;
 }
 
@@ -58,5 +154,44 @@ body {
 
   main {
     padding: 24px !important;
+  }
+}
+
+/* Cada identidade tem seu próprio tratamento nas áreas de boas-vindas. */
+.brand-stripes {
+  background: linear-gradient(110deg, var(--loja-400), var(--loja-700));
+}
+
+.brand-welcome {
+  background: radial-gradient(ellipse at top, var(--loja-100), var(--loja-50) 70%);
+}
+
+[data-tema='paysandu'] .brand-stripes {
+  background: repeating-linear-gradient(90deg, var(--loja-300) 0 24px, #fff 24px 48px);
+}
+
+[data-tema='paysandu'] .brand-welcome {
+  background: linear-gradient(
+    90deg,
+    var(--loja-100) 0 12%,
+    #fff 12% 24%,
+    var(--loja-50) 24% 76%,
+    #fff 76% 88%,
+    var(--loja-100) 88%
+  );
+}
+
+::selection {
+  background: var(--loja-200);
+  color: var(--loja-950);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

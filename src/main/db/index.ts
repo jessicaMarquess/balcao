@@ -1,23 +1,21 @@
-import Database from 'better-sqlite3'
+import type Database from 'better-sqlite3'
 import { app } from 'electron'
-import { join } from 'path'
+import { prepararBanco } from './preparacao'
 
-let db: Database.Database
+let db: Database.Database | undefined
+
+export async function inicializarDb(): Promise<void> {
+  if (!db) db = await prepararBanco(app.getPath('userData'), app.getVersion(), migrar)
+}
 
 export function getDb(): Database.Database {
-  if (!db) {
-    const dbPath = join(app.getPath('userData'), 'balcao.db')
-    db = new Database(dbPath)
-    configurar(db)
-    migrar(db)
-  }
+  if (!db) throw new Error('Banco de dados ainda não inicializado')
   return db
 }
 
-function configurar(db: Database.Database): void {
-  db.pragma('journal_mode = WAL')
-  db.pragma('synchronous = NORMAL')
-  db.pragma('foreign_keys = ON')
+export function fecharDb(): void {
+  db?.close()
+  db = undefined
 }
 
 function migrar(db: Database.Database): void {

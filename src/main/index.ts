@@ -1,8 +1,8 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { getDb } from './db'
+import { inicializarDb, fecharDb } from './db'
 import { registrarHandlers } from './ipc'
 
 function createWindow(): void {
@@ -34,21 +34,43 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.balcao')
+const instanciaPrincipal = app.requestSingleInstanceLock()
+if (!instanciaPrincipal) app.quit()
 
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
-
-  getDb()
-  registrarHandlers()
-  createWindow()
-
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+app.on('second-instance', () => {
+  const janela = BrowserWindow.getAllWindows()[0]
+  if (janela?.isMinimized()) janela.restore()
+  janela?.focus()
 })
+
+app.on('will-quit', fecharDb)
+
+if (instanciaPrincipal)
+  app.whenReady().then(async () => {
+    electronApp.setAppUserModelId('com.balcao')
+
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
+
+    try {
+      await inicializarDb()
+    } catch (erro) {
+      console.error('Falha ao preparar o banco de dados:', erro)
+      dialog.showErrorBox(
+        'Não foi possível abrir o Balcão',
+        'Não conseguimos preparar seus dados com segurança. O aplicativo foi fechado para proteger seu histórico. Abra novamente para tentar de novo. Se continuar, entre em contato com a Jesga.'
+      )
+      app.quit()
+      return
+    }
+    registrarHandlers()
+    createWindow()
+
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
+  })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

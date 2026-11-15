@@ -36,8 +36,8 @@ export default function Fechamento(): React.JSX.Element {
   const itensResumo = resumo
     ? [
         { label: 'Dinheiro', value: resumo.total_dinheiro, cor: 'text-green-700', bg: 'bg-green-50 border-green-200' },
-        { label: 'PIX', value: resumo.total_pix, cor: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
-        { label: 'Cartão', value: resumo.total_cartao, cor: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' }
+        { label: 'PIX', value: resumo.total_pix, cor: 'text-brand-alt-700', bg: 'bg-brand-alt-50 border-brand-alt-200' },
+        { label: 'Cartão', value: resumo.total_cartao, cor: 'text-brand-alt-700', bg: 'bg-brand-alt-50 border-brand-alt-200' }
       ]
     : []
 

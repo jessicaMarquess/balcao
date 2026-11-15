@@ -1,3 +1,4 @@
+import ListaPaginada from '@renderer/components/ListaPaginada'
 import { useState, useEffect, useCallback } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
@@ -23,7 +24,20 @@ const BADGE_PAGAMENTO: Record<string, 'default' | 'success' | 'secondary'> = {
 
 function formatarDataPT(iso: string): string {
   const [year, month, day] = iso.split('-')
-  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+  const meses = [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro'
+  ]
   return `Dia ${parseInt(day)} de ${meses[parseInt(month) - 1]} de ${year}`
 }
 
@@ -46,18 +60,25 @@ export default function PDV(): React.JSX.Element {
     setVendas(lista)
     setSaldoInicial(saldo)
     setTotalPix(lista.filter((v) => v.forma_pagamento === 'pix').reduce((s, v) => s + v.total, 0))
-    setTotalCartao(lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0))
-    setTotalDinheiro(lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0))
+    setTotalCartao(
+      lista.filter((v) => v.forma_pagamento === 'cartao').reduce((s, v) => s + v.total, 0)
+    )
+    setTotalDinheiro(
+      lista.filter((v) => v.forma_pagamento === 'dinheiro').reduce((s, v) => s + v.total, 0)
+    )
   }, [hoje])
 
-  useEffect(() => { carregar() }, [carregar])
+  useEffect(() => {
+    carregar()
+  }, [carregar])
 
   function alternarFiltro(f: Filtro): void {
     setFiltro((prev) => (prev === f ? 'todos' : f))
   }
 
   const totalGeral = totalDinheiro + totalPix + totalCartao
-  const vendasFiltradas = filtro === 'todos' ? vendas : vendas.filter((v) => v.forma_pagamento === filtro)
+  const vendasFiltradas =
+    filtro === 'todos' ? vendas : vendas.filter((v) => v.forma_pagamento === filtro)
 
   const cards: {
     id: Filtro
@@ -70,9 +91,9 @@ export default function PDV(): React.JSX.Element {
       label: 'Total',
       valor: totalGeral,
       estilo: {
-        base: 'border-violet-300 bg-linear-to-br from-violet-600 to-purple-700',
-        ativo: 'ring-violet-400',
-        label: 'text-violet-200',
+        base: 'border-brand-300 bg-linear-to-br from-brand-600 to-brand-alt-700',
+        ativo: 'ring-brand-400',
+        label: 'text-brand-200',
         valor: 'text-white'
       }
     },
@@ -92,10 +113,10 @@ export default function PDV(): React.JSX.Element {
       label: 'PIX',
       valor: totalPix,
       estilo: {
-        base: 'border-violet-200 bg-violet-50',
-        ativo: 'ring-violet-400',
-        label: 'text-violet-600',
-        valor: 'text-violet-800'
+        base: 'border-brand-200 bg-brand-50',
+        ativo: 'ring-brand-400',
+        label: 'text-brand-600',
+        valor: 'text-brand-800'
       }
     },
     {
@@ -103,10 +124,10 @@ export default function PDV(): React.JSX.Element {
       label: 'Crédito',
       valor: totalCartao,
       estilo: {
-        base: 'border-purple-200 bg-purple-50',
-        ativo: 'ring-purple-400',
-        label: 'text-purple-600',
-        valor: 'text-purple-800'
+        base: 'border-brand-alt-200 bg-brand-alt-50',
+        ativo: 'ring-brand-alt-400',
+        label: 'text-brand-alt-600',
+        valor: 'text-brand-alt-800'
       }
     }
   ]
@@ -114,7 +135,7 @@ export default function PDV(): React.JSX.Element {
   return (
     <div className="flex flex-col h-full">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-violet-100 bg-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-brand-100 bg-white">
         <h2 className="text-base font-semibold text-slate-700">{formatarDataPT(hoje)}</h2>
         <div className="flex gap-2">
           <Button onClick={() => setModalVendaAberto(true)}>
@@ -125,7 +146,7 @@ export default function PDV(): React.JSX.Element {
       </div>
 
       {/* Cards */}
-      <div className="flex gap-4 px-6 py-4 bg-white border-b border-violet-100">
+      <div className="flex gap-4 px-6 py-4 bg-white border-b border-brand-100">
         {cards.map(({ id, label, valor, estilo }) => {
           const ativo = filtro === id
           return (
@@ -138,13 +159,17 @@ export default function PDV(): React.JSX.Element {
                   : 'opacity-85 hover:opacity-100 hover:shadow-sm'
               }`}
             >
-              <p className={`text-xs font-semibold mb-1 uppercase tracking-wide ${estilo.label}`}>{label}</p>
+              <p className={`text-xs font-semibold mb-1 uppercase tracking-wide ${estilo.label}`}>
+                {label}
+              </p>
               <p className={`text-xl font-bold ${estilo.valor}`}>{formatCurrency(valor)}</p>
             </button>
           )
         })}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center shrink-0 w-40">
-          <p className="text-xs font-semibold mb-1 uppercase tracking-wide text-slate-400">Saldo inicial</p>
+          <p className="text-xs font-semibold mb-1 uppercase tracking-wide text-slate-400">
+            Saldo inicial
+          </p>
           <p className="text-xl font-bold text-slate-700">{formatCurrency(saldoInicial)}</p>
         </div>
       </div>
@@ -171,30 +196,43 @@ export default function PDV(): React.JSX.Element {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {vendasFiltradas.map((venda) => (
-              <div
-                key={venda.id}
-                onClick={() => setVendaSelecionada(venda)}
-                className="flex items-center gap-4 rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer hover:border-violet-300 hover:bg-violet-50/60 hover:shadow-sm transition-all duration-150"
+            {
+              <ListaPaginada
+                itens={vendasFiltradas}
+                rotulo="Vendas do dia"
+                tamanho={10}
+                key={filtro}
               >
-                <span className="text-xs text-slate-300 w-10 font-mono">#{venda.id}</span>
-                <span className="text-sm text-slate-400 w-14">
-                  {new Date(venda.created_at).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-                <div className="flex-1 text-sm text-slate-600">
-                  {venda.itens?.map((i) => i.nome_produto).join(', ')}
-                </div>
-                <Badge variant={BADGE_PAGAMENTO[venda.forma_pagamento]}>
-                  {LABEL_PAGAMENTO[venda.forma_pagamento]}
-                </Badge>
-                <span className="font-bold text-slate-800 w-24 text-right">
-                  {formatCurrency(venda.total)}
-                </span>
-              </div>
-            ))}
+                {(pagina) => (
+                  <>
+                    {pagina.map((venda) => (
+                      <div
+                        key={venda.id}
+                        onClick={() => setVendaSelecionada(venda)}
+                        className="flex items-center gap-4 rounded-xl border border-brand-100 bg-white px-4 py-3 cursor-pointer hover:border-brand-300 hover:bg-brand-50/60 hover:shadow-sm transition-all duration-150"
+                      >
+                        <span className="text-xs text-slate-300 w-10 font-mono">#{venda.id}</span>
+                        <span className="text-sm text-slate-400 w-14">
+                          {new Date(venda.created_at).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        <div className="flex-1 text-sm text-slate-600">
+                          {venda.itens?.map((i) => i.nome_produto).join(', ')}
+                        </div>
+                        <Badge variant={BADGE_PAGAMENTO[venda.forma_pagamento]}>
+                          {LABEL_PAGAMENTO[venda.forma_pagamento]}
+                        </Badge>
+                        <span className="font-bold text-slate-800 w-24 text-right">
+                          {formatCurrency(venda.total)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </ListaPaginada>
+            }
           </div>
         )}
       </div>

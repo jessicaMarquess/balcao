@@ -1,11 +1,13 @@
+import type { Estatisticas, RelatorioComparativo, RelatorioDia } from '../../renderer/src/types'
 import { getDb } from './index'
 import { getSaldoDia } from './saldo'
-import type { RelatorioDia, RelatorioComparativo, Estatisticas } from '../../renderer/src/types'
 
 export function getRelatorioDia(data: string): RelatorioDia {
   const db = getDb()
 
-  const resumo = db.prepare(`
+  const resumo = db
+    .prepare(
+      `
     SELECT
       COALESCE(SUM(total), 0) as totalGeral,
       COALESCE(SUM(CASE WHEN forma_pagamento = 'pix' THEN total ELSE 0 END), 0) as totalPix,
@@ -13,24 +15,32 @@ export function getRelatorioDia(data: string): RelatorioDia {
       COALESCE(SUM(CASE WHEN forma_pagamento = 'dinheiro' THEN total ELSE 0 END), 0) as totalDinheiro,
       COUNT(*) as quantidadeVendas
     FROM vendas WHERE data = ?
-  `).get(data) as Omit<RelatorioDia, 'saldoInicial' | 'maisVendidos' | 'estoquebaixo'>
+  `
+    )
+    .get(data) as Omit<RelatorioDia, 'saldoInicial' | 'maisVendidos' | 'estoquebaixo'>
 
-  const maisVendidos = db.prepare(`
-    SELECT iv.nome_produto, SUM(iv.quantidade) as total_quantidade
-    FROM itens_venda iv
-    JOIN vendas v ON v.id = iv.venda_id
-    WHERE v.data = ?
-    GROUP BY iv.nome_produto
-    ORDER BY total_quantidade DESC
-    LIMIT 5
-  `).all(data) as { nome_produto: string; total_quantidade: number }[]
+  const maisVendidos = db
+    .prepare(
+      `
+        SELECT iv.nome_produto, SUM(iv.quantidade) as total_quantidade
+        FROM itens_venda iv
+        JOIN vendas v ON v.id = iv.venda_id
+        WHERE v.data = ?
+        GROUP BY iv.nome_produto
+        ORDER BY total_quantidade DESC
+  `
+    )
+    .all(data) as { nome_produto: string; total_quantidade: number }[]
 
-  const estoquebaixo = db.prepare(`
+  const estoquebaixo = db
+    .prepare(
+      `
     SELECT id, nome, estoque FROM produtos
     WHERE ativo = 1 AND estoque <= 3
     ORDER BY estoque ASC
-    LIMIT 10
-  `).all() as { id: number; nome: string; estoque: number }[]
+  `
+    )
+    .all() as { id: number; nome: string; estoque: number }[]
 
   return {
     ...resumo,
@@ -70,7 +80,7 @@ export function getRelatorioComparativo(dataInicio: string, dataFim: string): Re
       WHERE v.data BETWEEN ? AND ?
       GROUP BY iv.nome_produto
       ORDER BY total_quantidade DESC
-      LIMIT 8`
+      `
     )
     .all(dataInicio, dataFim) as RelatorioComparativo['maisVendidos']
 
@@ -78,7 +88,7 @@ export function getRelatorioComparativo(dataInicio: string, dataFim: string): Re
     .prepare(
       `SELECT id, nome, estoque FROM produtos
       WHERE ativo = 1 AND estoque <= 3
-      ORDER BY estoque ASC LIMIT 8`
+      ORDER BY estoque ASC`
     )
     .all() as RelatorioComparativo['estoqueBaixo']
 
@@ -112,7 +122,7 @@ export function getEstatisticas(dataInicio: string, dataFim: string): Estatistic
       WHERE v.data BETWEEN ? AND ?
       GROUP BY iv.nome_produto
       ORDER BY total_quantidade DESC
-      LIMIT 10`
+      `
     )
     .all(dataInicio, dataFim) as Estatisticas['maisVendidos']
 

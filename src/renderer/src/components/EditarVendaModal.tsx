@@ -156,18 +156,18 @@ export default function EditarVendaModal({
               className="pl-9"
             />
             {resultados.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-xl border border-violet-100 bg-white shadow-lg">
+              <div className="absolute z-10 mt-1 w-full rounded-xl border border-brand-100 bg-white shadow-lg">
                 {resultados.map((p) => (
                   <button
                     key={p.id}
                     disabled={p.estoque === 0}
                     onClick={() => adicionarProduto(p)}
-                    className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-violet-50 disabled:opacity-40 disabled:cursor-not-allowed first:rounded-t-xl last:rounded-b-xl"
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed first:rounded-t-xl last:rounded-b-xl"
                   >
                     <span className="font-medium text-slate-700">{p.nome}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-400">{p.estoque} un.</span>
-                      <span className="font-bold text-violet-600">{formatCurrency(p.preco)}</span>
+                      <span className="font-bold text-brand-600">{formatCurrency(p.preco)}</span>
                     </div>
                   </button>
                 ))}
@@ -183,7 +183,7 @@ export default function EditarVendaModal({
               {itens.map((item) => (
                 <div
                   key={item.produto_id}
-                  className="flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-2"
+                  className="flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/40 px-3 py-2"
                 >
                   <span className="flex-1 text-sm font-medium text-slate-700 truncate">
                     {item.nome_produto}
@@ -198,14 +198,14 @@ export default function EditarVendaModal({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => alterarQuantidade(item.produto_id, -1)}
-                      className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-500 hover:bg-violet-100"
+                      className="flex h-6 w-6 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-500 hover:bg-brand-100"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="w-6 text-center text-sm font-semibold">{item.quantidade}</span>
                     <button
                       onClick={() => alterarQuantidade(item.produto_id, 1)}
-                      className="flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200 bg-white text-slate-500 hover:bg-violet-100"
+                      className="flex h-6 w-6 items-center justify-center rounded-lg border border-brand-200 bg-white text-slate-500 hover:bg-brand-100"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -234,8 +234,8 @@ export default function EditarVendaModal({
                 onClick={() => setFormaPagamento(value)}
                 className={`flex-1 rounded-xl border py-2 text-sm font-semibold transition-all duration-150 ${
                   formaPagamento === value
-                    ? 'border-violet-600 bg-linear-to-br from-violet-600 to-purple-700 text-white shadow-sm'
-                    : 'border-violet-200 bg-white text-slate-600 hover:border-violet-400 hover:bg-violet-50'
+                    ? 'border-brand-600 bg-linear-to-br from-brand-600 to-brand-alt-700 text-white shadow-sm'
+                    : 'border-brand-200 bg-white text-slate-600 hover:border-brand-400 hover:bg-brand-50'
                 }`}
               >
                 {label}
@@ -253,7 +253,7 @@ export default function EditarVendaModal({
           </div>
 
           {/* Total */}
-          <div className="flex flex-col gap-1 rounded-xl bg-violet-50/60 px-4 py-3">
+          <div className="flex flex-col gap-1 rounded-xl bg-brand-50/60 px-4 py-3">
             {descontoAplicado > 0 && (
               <div className="flex items-center justify-between text-sm text-slate-400">
                 <span>Subtotal</span>

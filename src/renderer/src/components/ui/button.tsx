@@ -4,22 +4,18 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@renderer/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]',
   {
     variants: {
       variant: {
-        default:
-          'bg-linear-to-br from-violet-600 to-purple-700 text-white shadow-sm shadow-violet-200 hover:from-violet-500 hover:to-purple-600 hover:shadow-md hover:shadow-violet-200',
+        default: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-md',
         destructive:
           'bg-linear-to-br from-red-500 to-rose-600 text-white shadow-sm hover:from-red-400 hover:to-rose-500 hover:shadow-md',
         outline:
-          'border border-violet-200 bg-white text-violet-700 hover:bg-violet-50 hover:border-violet-300',
-        secondary:
-          'bg-violet-100 text-violet-800 hover:bg-violet-200',
-        ghost:
-          'text-violet-700 hover:bg-violet-50',
-        link:
-          'text-violet-600 underline-offset-4 hover:underline'
+          'border border-brand-200 bg-white text-brand-700 hover:bg-brand-50 hover:border-brand-300',
+        secondary: 'bg-brand-100 text-brand-800 hover:bg-brand-200',
+        ghost: 'text-brand-700 hover:bg-brand-50',
+        link: 'text-brand-600 underline-offset-4 hover:underline'
       },
       size: {
         default: 'h-10 px-5 py-2',
@@ -36,15 +32,16 @@ const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+    return (
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+    )
   }
 )
 Button.displayName = 'Button'

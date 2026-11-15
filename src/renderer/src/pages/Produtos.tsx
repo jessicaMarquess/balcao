@@ -1,3 +1,4 @@
+import ListaPaginada from '@renderer/components/ListaPaginada'
 import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
@@ -78,55 +79,63 @@ export default function Produtos(): React.JSX.Element {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="pb-3 font-medium">Nome</th>
-              <th className="pb-3 font-medium">Preço</th>
-              <th className="pb-3 font-medium">Estoque</th>
-              <th className="pb-3 font-medium w-24"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {produtos.map((produto) => (
-              <tr key={produto.id} className="hover:bg-slate-50">
-                <td className="py-3 font-medium text-slate-800">{produto.nome}</td>
-                <td className="py-3 text-slate-700">{formatCurrency(produto.preco)}</td>
-                <td className="py-3">
-                  <Badge
-                    variant={
-                      produto.estoque > 5 ? 'success' : produto.estoque > 0 ? 'warning' : 'destructive'
-                    }
-                  >
-                    {produto.estoque} un.
-                  </Badge>
-                </td>
-                <td className="py-3">
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => abrirEdicao(produto)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deletar(produto.id)}
-                      className="text-red-400 hover:text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {produtos.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-12 text-center text-slate-400">
-                  Nenhum produto cadastrado
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <ListaPaginada itens={produtos} rotulo="Produtos">
+          {(pagina) => (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-slate-500">
+                  <th className="pb-3 font-medium">Nome</th>
+                  <th className="pb-3 font-medium">Preço</th>
+                  <th className="pb-3 font-medium">Estoque</th>
+                  <th className="pb-3 font-medium w-24"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagina.map((produto) => (
+                  <tr key={produto.id} className="hover:bg-slate-50">
+                    <td className="py-3 font-medium text-slate-800">{produto.nome}</td>
+                    <td className="py-3 text-slate-700">{formatCurrency(produto.preco)}</td>
+                    <td className="py-3">
+                      <Badge
+                        variant={
+                          produto.estoque > 5
+                            ? 'success'
+                            : produto.estoque > 0
+                              ? 'warning'
+                              : 'destructive'
+                        }
+                      >
+                        {produto.estoque} un.
+                      </Badge>
+                    </td>
+                    <td className="py-3">
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => abrirEdicao(produto)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deletar(produto.id)}
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {produtos.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-12 text-center text-slate-400">
+                      Nenhum produto cadastrado
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </ListaPaginada>
       </div>
 
       <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>

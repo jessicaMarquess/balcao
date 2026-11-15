@@ -1,0 +1,44 @@
+name: Gerar instaladores
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'build/instaladores-*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.nome }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nome: Windows
+            os: windows-latest
+            comando: npm run build:win -- --publish never
+            arquivo: dist/*setup.exe
+          - nome: macOS
+            os: macos-latest
+            comando: npm run build:mac -- --publish never
+            arquivo: dist/*.dmg
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:backup
+      - run: ${{ matrix.comando }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balcao-${{ matrix.nome }}
+          path: ${{ matrix.arquivo }}
+          if-no-files-found: error
+          retention-days: 14

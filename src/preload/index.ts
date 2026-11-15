@@ -1,6 +1,6 @@
-import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { NovaVenda, NovoProduto, ItemCarrinho } from '../renderer/src/types'
+import { contextBridge, ipcRenderer } from 'electron'
+import type { ItemCarrinho, NovaVenda, NovoProduto } from '../renderer/src/types'
 
 const api = {
   produtos: {
@@ -16,8 +16,10 @@ const api = {
     resumoDia: (data: string) => ipcRenderer.invoke('vendas:resumo-dia', data),
     listarPeriodo: (dataInicio: string, dataFim: string) =>
       ipcRenderer.invoke('vendas:listar-periodo', dataInicio, dataFim),
-    atualizar: (id: number, dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }) =>
-      ipcRenderer.invoke('vendas:atualizar', id, dados),
+    atualizar: (
+      id: number,
+      dados: { itens: ItemCarrinho[]; forma_pagamento: string; desconto: number }
+    ) => ipcRenderer.invoke('vendas:atualizar', id, dados),
     excluir: (id: number) => ipcRenderer.invoke('vendas:excluir', id)
   },
   dia: {
